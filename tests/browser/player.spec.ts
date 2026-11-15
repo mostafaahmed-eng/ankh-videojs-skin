@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import AxeBuilder from '@axe-core/playwright';
 
 const videoSelector = '.ankh-player video';
 let browserErrors: string[] = [];
@@ -47,7 +48,7 @@ test('shows the working showcase without horizontal overflow at target widths', 
     expect(dimensions.page, `horizontal overflow at ${width}px`).toBeLessThanOrEqual(dimensions.viewport);
     expect(dimensions.player).toBeGreaterThan(0);
     expect(dimensions.controls.every(({ width, height }) => width >= 44 && height >= 44), `undersized touch control at ${width}px`).toBe(true);
-    if (width === 390) await capture(page, 'artifacts/v2-mobile.png');
+    if (width === 390) await capture(page, 'artifacts/v3-mobile.png');
   }
   await page.setViewportSize({ width: 1440, height: 900 });
   await loadShowcase(page);
@@ -57,7 +58,74 @@ test('shows the working showcase without horizontal overflow at target widths', 
     expect(bounds, 'main control should be rendered').not.toBeNull();
     expect(bounds!.y + bounds!.height, 'main control should be above the initial desktop fold').toBeLessThanOrEqual(viewportHeight);
   }
-  await capture(page, 'artifacts/v2-desktop.png', false);
+  await capture(page, 'artifacts/v3-desktop.png', false);
+});
+
+test('solar disc is the centered, keyboard-operable initial play control', async ({ page }) => {
+  await loadShowcase(page);
+  const video = page.locator(videoSelector);
+  const solarPlay = page.locator('.ankh-center-play');
+  await expect(solarPlay).toBeVisible();
+  await expect(solarPlay).toHaveAccessibleName(/play/i);
+  const videoBounds = await video.boundingBox();
+  const buttonBounds = await solarPlay.boundingBox();
+  expect(videoBounds).not.toBeNull();
+  expect(buttonBounds).not.toBeNull();
+  const center = {
+    x: (buttonBounds!.x + buttonBounds!.width / 2 - videoBounds!.x) / videoBounds!.width,
+    y: (buttonBounds!.y + buttonBounds!.height / 2 - videoBounds!.y) / videoBounds!.height,
+  };
+  expect(center.x).toBeGreaterThan(0.6);
+  expect(center.x).toBeLessThan(0.68);
+  await solarPlay.focus();
+  await expect.poll(() => solarPlay.evaluate((el) => getComputedStyle(el).outlineStyle)).not.toBe('none');
+  await page.keyboard.press('Enter');
+  await expect.poll(() => video.evaluate((el: HTMLVideoElement) => !el.paused)).toBe(true);
+});
+
+test('timeline landmarks, pointer preview, and accessible keyboard seeking stay tied to media time', async ({ page }) => {
+  await loadShowcase(page);
+  const video = page.locator(videoSelector);
+  const slider = page.locator('.ankh-timeline');
+  await expect(slider.locator('.ankh-landmark-dawn')).toContainText('DAWN 0%');
+  await expect(slider.locator('.ankh-landmark-zenith')).toContainText('ZENITH 50%');
+  await expect(slider.locator('.ankh-landmark-dusk')).toContainText('DUSK 100%');
+  const bounds = await slider.boundingBox();
+  expect(bounds).not.toBeNull();
+  await page.mouse.move(bounds!.x + bounds!.width * 0.5, bounds!.y + 24);
+  await expect.poll(() => slider.locator('.ankh-preview-time').textContent()).not.toBe('');
+  await expect.poll(() => slider.locator('.ankh-preview').evaluate((el) => Number(getComputedStyle(el).opacity))).toBeGreaterThan(0);
+  const thumb = slider.locator('.ankh-sun-thumb');
+  await expect(thumb).toHaveAttribute('role', 'slider');
+  await expect(thumb).toHaveAttribute('aria-valuenow', /\d/);
+  await thumb.focus();
+  const before = await video.evaluate((el: HTMLVideoElement) => el.currentTime);
+  await page.keyboard.press('ArrowRight');
+  await expect.poll(() => video.evaluate((el: HTMLVideoElement) => el.currentTime)).toBeGreaterThan(before);
+});
+
+test('small-container shelf follows the video while preserving the solar arc and touch targets', async ({ page }) => {
+  for (const width of [320, 375, 390]) {
+    await page.setViewportSize({ width, height: 844 });
+    await loadShowcase(page);
+    const layout = await page.evaluate(() => {
+      const video = document.querySelector('video')!.getBoundingClientRect();
+      const controls = document.querySelector('.ankh-controls')!.getBoundingClientRect();
+      const slider = document.querySelector('.ankh-timeline')!.getBoundingClientRect();
+      const button = document.querySelector('.ankh-play-button')!.getBoundingClientRect();
+      return { videoBottom: video.bottom, controlsTop: controls.top, sliderWidth: slider.width, buttonHeight: button.height };
+    });
+    expect(layout.controlsTop).toBeGreaterThanOrEqual(layout.videoBottom - 1);
+    expect(layout.sliderWidth).toBeGreaterThan(0);
+    expect(layout.buttonHeight).toBeGreaterThanOrEqual(44);
+    if (width === 390) await capture(page, 'artifacts/v3-mobile.png');
+  }
+});
+
+test('axe accessibility audit covers player controls and timeline', async ({ page }) => {
+  await loadShowcase(page);
+  const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze();
+  expect(results.violations.map(({ id, impact, nodes }) => ({ id, impact, count: nodes.length }))).toEqual([]);
 });
 
 test('plays, pauses, seeks, and toggles mute using Video.js controls', async ({ page }) => {
@@ -70,11 +138,11 @@ test('plays, pauses, seeks, and toggles mute using Video.js controls', async ({ 
   if (!playBounds) throw new Error('Play button has no rendered box');
   await page.mouse.move(playBounds.x + playBounds.width / 2, playBounds.y + playBounds.height / 2);
   await expect(page.locator('.ankh-play-button')).toBeVisible();
-  await capture(page, 'artifacts/v2-playing.png');
+  await capture(page, 'artifacts/v3-playing.png');
 
   await page.locator('.ankh-play-button').click();
   await expect.poll(() => video.evaluate((el: HTMLVideoElement) => el.paused)).toBe(true);
-  await capture(page, 'artifacts/v2-paused.png');
+  await capture(page, 'artifacts/v3-paused.png');
 
   const slider = page.locator('.ankh-timeline');
   const thumb = page.locator('.ankh-sun-thumb');
@@ -104,6 +172,7 @@ test('plays, pauses, seeks, and toggles mute using Video.js controls', async ({ 
 
   await page.mouse.move(bounds.x + bounds.width * 0.8, bounds.y + bounds.height / 2);
   await expect.poll(() => page.locator('.ankh-preview').evaluate((el) => Number(getComputedStyle(el).opacity))).toBeGreaterThan(0);
+  await capture(page, 'artifacts/v3-seeking.png');
   const dragStart = await thumb.boundingBox();
   if (!dragStart) throw new Error('Solar disc has no rendered box');
   const targetRatio = 0.35;
@@ -113,9 +182,9 @@ test('plays, pauses, seeks, and toggles mute using Video.js controls', async ({ 
   await page.mouse.down();
   await page.mouse.move(targetX, targetY, { steps: 12 });
   await expect(slider).toHaveAttribute('data-dragging', '');
-  await expect.poll(async () => video.evaluate((el: HTMLVideoElement) => el.currentTime / el.duration)).toBeLessThan(0.5);
   await page.mouse.up();
-  await expect.poll(async () => video.evaluate((el: HTMLVideoElement) => el.currentTime / el.duration)).toBeGreaterThan(0.2);
+  await expect.poll(async () => video.evaluate((el: HTMLVideoElement) => el.currentTime / el.duration)).toBeGreaterThan(0.25);
+  await expect.poll(async () => video.evaluate((el: HTMLVideoElement) => el.currentTime / el.duration)).toBeLessThan(0.45);
 
   const beforeMute = await video.evaluate((el: HTMLVideoElement) => el.muted);
   await page.locator('.ankh-mute-button').click();
@@ -145,7 +214,7 @@ test('supports keyboard focus, reduced motion, volume, and available fullscreen'
   const tooltipId = await play.getAttribute('commandfor');
   expect(tooltipId).toBeTruthy();
   await expect(page.locator(`#${tooltipId}`)).toBeVisible();
-  await capture(page, 'artifacts/v2-keyboard-focus.png');
+  await capture(page, 'artifacts/v3-keyboard-focus.png');
   await page.keyboard.press('Space');
   await expect.poll(() => video.evaluate((el: HTMLVideoElement) => !el.paused)).toBe(true);
   await expect(page.locator(`#${tooltipId} media-tooltip-label`)).toContainText(/pause/i);
@@ -153,6 +222,8 @@ test('supports keyboard focus, reduced motion, volume, and available fullscreen'
   await page.emulateMedia({ reducedMotion: 'reduce' });
   const transition = await page.locator('.ankh-controls-content').evaluate((el) => getComputedStyle(el).transitionDuration);
   expect(transition.split(',').every((duration) => duration.trim() === '0s')).toBe(true);
+  const loaderAnimation = await page.locator('.solar-loader').evaluate((el) => getComputedStyle(el).animationName);
+  expect(loaderAnimation).toBe('none');
 
   const volumeSlider = page.locator('.ankh-volume-thumb');
   await expect(volumeSlider).toBeVisible();
@@ -165,8 +236,8 @@ test('supports keyboard focus, reduced motion, volume, and available fullscreen'
   if (await fullscreen.isVisible()) {
     await fullscreen.click();
     await expect.poll(() => page.evaluate(() => Boolean(document.fullscreenElement))).toBe(true);
-    await capture(page, 'artifacts/v2-fullscreen.png', false);
-    await fullscreen.click();
+    await capture(page, 'artifacts/v3-fullscreen.png', false);
+    await page.keyboard.press('Escape');
     await expect.poll(() => page.evaluate(() => Boolean(document.fullscreenElement))).toBe(false);
   }
 });

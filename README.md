@@ -18,9 +18,11 @@ The preview uses a 10-second, 1080p MP4 excerpt from Blender Foundation's Big Bu
 ```dotenv
 VITE_DEMO_VIDEO_URL=https://your-cdn.example/video.mp4
 VITE_DEMO_POSTER_URL=/your-poster.jpg
+# Optional: set only after a real public Mux playback ID is available.
+VITE_MUX_PLAYBACK_ID=
 ```
 
-Restart Vite after changing these values. Supply a browser-playable source URL and optional poster URL. For Mux playback, add the relevant Video.js media adapter and replace the native `<video>` in `apps/preview/src/frame/player.ts` with the adapter element. To use captions or chapters, add real `<track kind="captions">` or `<track kind="chapters">` sources to the media element; the skin's controls react to track availability.
+Restart Vite after changing these values. Supply a browser-playable source URL and optional poster URL. When `VITE_MUX_PLAYBACK_ID` contains a real public playback ID, the showcase loads the official `@videojs/mux-video` adapter and keeps the ANKH controls as the player interface. With the variable unset, it uses the existing MP4 development fallback. To use captions or chapters, add real `<track kind="captions">` or `<track kind="chapters">` sources to the media element; the skin's controls react to track availability.
 
 ## Skin architecture
 

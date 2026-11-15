@@ -21,7 +21,7 @@
   display: block;
   width: 100%;
   overflow: hidden;
-  aspect-ratio: 16 / 9;
+  aspect-ratio: auto;
   color: var(--ankh-ivory);
   color-scheme: dark;
   background: var(--ankh-obsidian);
@@ -41,7 +41,8 @@
 .ankh-media {
   display: block;
   width: 100%;
-  height: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
   object-fit: contain;
   background: #050607;
 }
@@ -109,7 +110,7 @@
   position: relative;
   display: block;
   width: 100%;
-  height: 62px;
+  height: 70px;
   margin: 0 0 1px;
   touch-action: none;
   cursor: pointer;
@@ -127,6 +128,38 @@
   overflow: visible;
   background: transparent;
 }
+
+.ankh-landmarks {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  pointer-events: none;
+  color: var(--ankh-sandstone);
+  font-size: 8px;
+  font-weight: 600;
+  letter-spacing: .12em;
+  white-space: nowrap;
+}
+
+.ankh-landmark {
+  position: absolute;
+  top: 47px;
+  display: grid;
+  justify-items: center;
+  gap: 3px;
+  transform: translateX(-50%);
+}
+
+.ankh-landmark i {
+  width: 1px;
+  height: 5px;
+  background: rgb(232 220 196 / 68%);
+}
+
+.ankh-landmark-dawn { left: 1.4%; transform: none; }
+.ankh-landmark-zenith { left: 50%; color: var(--ankh-gold); }
+.ankh-landmark-zenith i { height: 9px; background: var(--ankh-gold); }
+.ankh-landmark-dusk { left: 98.6%; transform: translateX(-100%); }
 
 .ankh-track::before {
   position: absolute;
@@ -183,7 +216,7 @@
   background: var(--ankh-gold);
   border: 2px solid var(--ankh-ivory);
   border-radius: 50%;
-  box-shadow: 0 0 0 3px rgb(11 13 16 / 82%);
+  box-shadow: 0 0 0 3px rgb(11 13 16 / 82%), 0 0 10px rgb(212 175 55 / 24%);
   transform: translate(-50%, -50%);
   transition: transform var(--ankh-motion-fast) var(--ankh-ease), box-shadow var(--ankh-motion-fast);
   cursor: grab;
@@ -370,14 +403,14 @@
 .ankh-center-play {
   position: absolute;
   z-index: 2;
-  top: 50%;
-  left: 50%;
-  width: 68px;
-  height: 68px;
+  top: 24.4cqw;
+  left: 64.4%;
+  width: clamp(58px, 14.5cqw, 168px);
+  height: clamp(58px, 14.5cqw, 168px);
   color: var(--ankh-obsidian);
-  background: var(--ankh-gold);
-  border: 1px solid rgb(245 243 239 / 80%);
-  box-shadow: 0 0 0 7px rgb(11 13 16 / 58%);
+  background: radial-gradient(circle at 38% 32%, #f0d983 0 8%, #d4af37 48%, #8e7020 100%);
+  border: 1px solid rgb(245 243 239 / 85%);
+  box-shadow: 0 0 0 5px rgb(11 13 16 / 76%), 0 0 0 7px rgb(212 175 55 / 42%), inset 0 0 0 2px rgb(11 13 16 / 22%);
   opacity: 0;
   visibility: hidden;
   transform: translate(-50%, -50%) scale(.94);
@@ -392,8 +425,8 @@
 }
 
 .ankh-center-play svg {
-  width: 28px;
-  height: 28px;
+  width: 30%;
+  height: 30%;
 }
 
 .ankh-time {
@@ -561,20 +594,32 @@ media-status-announcer {
   .ankh-time { gap: 4px; font-size: 10px; }
   .ankh-volume { width: 58px; }
   .ankh-rate { min-width: 38px; padding-inline: 4px; font-size: 10px; }
-  .ankh-timeline { height: 58px; }
+  .ankh-timeline { height: 70px; }
 }
 
 @container (max-width: 440px) {
-  .ankh-center-play { display: none; }
-  .ankh-volume { display: none; }
-  .ankh-rate { display: none; }
+  .ankh-controls { position: relative; inset: auto; }
+  .ankh-controls-content { position: relative; inset: auto; display: block; padding: 8px; }
+  .ankh-scrim { display: none; }
+  .ankh-control-row { flex-wrap: wrap; row-gap: 5px; }
+  .ankh-secondary-controls { margin-left: auto; }
+  .ankh-volume { width: 54px; height: 44px; }
+  .ankh-volume-track { top: 20px; }
+  .ankh-rate { min-width: 44px; padding-inline: 5px; }
+  .ankh-center-play { top: 24.4cqw; }
   .ankh-controls-content { padding: 8px; }
   .ankh-control-shelf { padding: 3px 6px 4px; }
-  .ankh-time { font-size: 9px; }
+  .ankh-time { font-size: 10px; }
   .ankh-primary-controls, .ankh-secondary-controls { gap: 0; }
   .ankh-button, .ankh-play-button { width: 44px; height: 44px; }
   .ankh-button svg, .ankh-play-button svg { width: 20px; height: 20px; }
 }
+
+.ankh-player[data-fullscreen] .ankh-controls { position: absolute; inset: 0; }
+.ankh-player[data-fullscreen] .ankh-controls-content { position: absolute; inset: 0; display: flex; }
+.ankh-player[data-fullscreen] .ankh-scrim { display: block; }
+.ankh-player[data-fullscreen] { aspect-ratio: 16 / 9; height: 100%; }
+.ankh-player[data-fullscreen] .ankh-media { height: 100%; }
 
 @media (hover: hover) and (pointer: fine) {
   .ankh-timeline:not([data-interactive]) .ankh-sun-thumb { opacity: .9; }
@@ -590,6 +635,6 @@ media-status-announcer {
     --ankh-motion-fast: 0ms;
     --ankh-motion: 0ms;
   }
-  .solar-loader { animation-duration: 1.8s; }
+  .solar-loader { animation: none; }
   .ankh-controls-content, .ankh-scrim, .ankh-center-play { transition: none; }
 }

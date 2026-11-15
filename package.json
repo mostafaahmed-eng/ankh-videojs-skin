@@ -15,9 +15,11 @@
     "deploy:cloudflare": "npm run build && npx --yes wrangler@4 pages deploy dist --project-name ankh"
   },
   "dependencies": {
-    "@videojs/html": "10.4.0"
+    "@videojs/html": "10.4.0",
+    "@videojs/mux-video": "^10.4.0"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.14.0",
     "@base-ui/react": "^1.6.0",
     "@heroicons/react": "^2.2.0",
     "@playwright/test": "^1.65.1",

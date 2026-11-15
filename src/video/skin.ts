@@ -39,9 +39,20 @@ import './skin.css';
 
 const watchedSliders = new WeakSet<Element>();
 const tooledPlayers = new WeakSet<Element>();
+const escapeBoundPlayers = new WeakSet<Element>();
 let playerSequence = 0;
 
 function bindPlayerTooltips(player: Element): void {
+  if (!escapeBoundPlayers.has(player)) {
+    escapeBoundPlayers.add(player);
+    player.addEventListener('keydown', (event) => {
+      if (!(event instanceof KeyboardEvent) || event.key !== 'Escape' || !document.fullscreenElement) return;
+      const fullscreenTarget = document.fullscreenElement;
+      if (fullscreenTarget !== player && !player.contains(fullscreenTarget)) return;
+      event.preventDefault();
+      void document.exitFullscreen();
+    }, true);
+  }
   if (tooledPlayers.has(player)) return;
   tooledPlayers.add(player);
   const scope = `ankh-${++playerSequence}`;
