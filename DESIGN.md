@@ -2,7 +2,7 @@
 
 ## Concept
 
-ANKH turns the sun's measured passage into a control surface for moving images. The visual language comes from instrument dials, precise alignment, and museum presentation. A solar-disc seek handle supplies the Egyptian-futurist reference; the rest stays quiet, functional, and contemporary.
+ANKH turns the sun's measured passage into a control surface for moving images. The visual language comes from instrument dials, precise alignment, and museum presentation. A curved solar-disc seek path supplies the Egyptian-futurist reference; the rest stays quiet, functional, and contemporary.
 
 ## Palette and type
 
@@ -17,7 +17,7 @@ Player controls use system sans-serif fonts to avoid an unlicensed web-font depe
 
 ## Solar Timeline
 
-The slider remains the official Video.js `media-time-slider`, with its slider track, buffered fill, progress fill, thumb, pointer preview, time display, and optional chapter template. The round solar handle marks the live position; gold and sandstone separate played and buffered media. The visible track is thin, while the component keeps a larger interactive hit area. The role, values, keyboard seek, drag seeking, pause-on-drag, and buffering state come from Video.js.
+The slider remains the official Video.js `media-time-slider`, with its slider track, buffered fill, progress fill, thumb, pointer preview, time display, and optional chapter template. Gold and sandstone separate played and buffered media. A small skin-side mapper positions the visual thumb on the responsive arc from the slider's published progress value; the real slider continues to own role, values, keyboard and touch input, drag seeking, pause-on-drag, and buffering state.
 
 ## Controls and state
 
@@ -26,10 +26,10 @@ The control shelf preserves official play, pause, replay, mute, volume, captions
 ## Accessibility
 
 - Focus uses a high-contrast gold ring with a dark offset.
-- Controls use at least 40px targets, with 44px primary desktop targets.
+- Controls use 44px targets, with the full timeline acting as the touch target.
 - Control labels and slider semantics are supplied by Video.js components.
 - Status changes use the Video.js status announcer.
-- Controls sit on an opaque obsidian shelf with a gradient scrim over the picture.
+- Controls sit on a mineral-textured obsidian shelf with a gradient scrim over the picture.
 - Hover behavior is limited to fine pointers.
 - Reduced-motion preferences simplify transitions and the buffer animation.
 - Responsive container queries adapt the bar to embedded player width.

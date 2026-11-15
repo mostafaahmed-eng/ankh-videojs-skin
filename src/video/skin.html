@@ -9,7 +9,7 @@
   <media-gesture type="doubletap" action="seekStep" value="-10" region="left"></media-gesture>
   <media-gesture type="doubletap" action="seekStep" value="10" region="right"></media-gesture>
 
-  <media-play-button class="ankh-center-play" aria-label="Play video">
+  <media-play-button class="ankh-center-play">
     <svg class="icon-play" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 10 6-10 6z"/></svg>
     <svg class="icon-pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 6v12M16 6v12"/></svg>
     <svg class="icon-replay" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11a8 8 0 1 1 .6 4M4 5v6h6"/></svg>
@@ -23,7 +23,7 @@
     <media-controls-backdrop class="ankh-scrim"></media-controls-backdrop>
     <media-controls-content class="ankh-controls-content">
       <div class="ankh-control-shelf">
-        <media-time-slider class="ankh-timeline" aria-label="Solar timeline" pause-on-drag thumb-alignment="edge">
+        <media-time-slider class="ankh-timeline" pause-on-drag thumb-alignment="edge">
           <media-time-slider-chapters class="ankh-chapters">
             <template>
               <div class="ankh-chapter">
@@ -47,11 +47,12 @@
 
         <div class="ankh-control-row">
           <media-controls-group class="ankh-primary-controls" aria-label="Playback controls">
-            <media-play-button class="ankh-button ankh-play-button" aria-label="Play video">
-              <svg class="icon-play" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 10 6-10 6z"/></svg>
-              <svg class="icon-pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 6v12M16 6v12"/></svg>
-              <svg class="icon-replay" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11a8 8 0 1 1 .6 4M4 5v6h6"/></svg>
-            </media-play-button>
+            <media-tooltip-group class="ankh-tooltip-group">
+              <media-play-button class="ankh-button ankh-play-button" data-ankh-tooltip="play" commandfor="ankh-play-tooltip">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><circle class="solar-ring" cx="12" cy="12" r="9.5"/><path class="icon-play" d="m10 7 8 5-8 5z"/><path class="icon-pause" d="M9 7v10m6-10v10"/><path class="icon-replay" d="M5 10a7.5 7.5 0 1 1 .7 5M5 5v5h5"/></svg>
+              </media-play-button>
+              <media-tooltip id="ankh-play-tooltip" data-ankh-tooltip-target="play" class="ankh-tooltip"><media-tooltip-label></media-tooltip-label></media-tooltip>
+            </media-tooltip-group>
             <media-time-group class="ankh-time" aria-label="Playback time">
               <media-time type="current"></media-time>
               <media-time-separator></media-time-separator>
@@ -60,24 +61,36 @@
           </media-controls-group>
 
           <media-controls-group class="ankh-secondary-controls" aria-label="More playback controls">
-            <media-mute-button class="ankh-button ankh-mute-button">
+            <media-tooltip-group class="ankh-tooltip-group">
+            <media-mute-button class="ankh-button ankh-mute-button" data-ankh-tooltip="mute" commandfor="ankh-mute-tooltip">
               <svg class="icon-volume" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10v4h4l5 4V6l-5 4H4Z"/><path class="volume-wave" d="M16 9a5 5 0 0 1 0 6m3-9a9 9 0 0 1 0 12"/><path class="volume-muted" d="m16 9 5 6m0-6-5 6"/></svg>
             </media-mute-button>
+            <media-tooltip id="ankh-mute-tooltip" data-ankh-tooltip-target="mute" class="ankh-tooltip"><media-tooltip-label></media-tooltip-label></media-tooltip>
+            </media-tooltip-group>
             <media-volume-slider class="ankh-volume" aria-label="Volume">
               <media-slider-track class="ankh-volume-track"><media-slider-fill class="ankh-volume-fill"></media-slider-fill></media-slider-track>
               <media-slider-thumb class="ankh-volume-thumb"></media-slider-thumb>
             </media-volume-slider>
             <media-playback-rate-button class="ankh-button ankh-rate" rates="0.5 0.75 1 1.25 1.5 2"></media-playback-rate-button>
-            <media-captions-button class="ankh-button ankh-captions-button">
+            <media-tooltip-group class="ankh-tooltip-group">
+            <media-captions-button class="ankh-button ankh-captions-button" data-ankh-tooltip="captions" commandfor="ankh-captions-tooltip">
               <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5.5" width="17" height="13" rx="2"/><path d="M7 10h4m2 0h4M7 14h2m2 0h6"/></svg>
             </media-captions-button>
-            <media-pip-button class="ankh-button ankh-pip-button">
+            <media-tooltip id="ankh-captions-tooltip" data-ankh-tooltip-target="captions" class="ankh-tooltip"><media-tooltip-label></media-tooltip-label></media-tooltip>
+            </media-tooltip-group>
+            <media-tooltip-group class="ankh-tooltip-group">
+            <media-pip-button class="ankh-button ankh-pip-button" data-ankh-tooltip="pip" commandfor="ankh-pip-tooltip">
               <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5.5" width="17" height="13" rx="2"/><path d="M12.5 11.5h5v4h-5z"/></svg>
             </media-pip-button>
-            <media-fullscreen-button class="ankh-button ankh-fullscreen-button">
+            <media-tooltip id="ankh-pip-tooltip" data-ankh-tooltip-target="pip" class="ankh-tooltip"><media-tooltip-label></media-tooltip-label></media-tooltip>
+            </media-tooltip-group>
+            <media-tooltip-group class="ankh-tooltip-group">
+            <media-fullscreen-button class="ankh-button ankh-fullscreen-button" data-ankh-tooltip="fullscreen" commandfor="ankh-fullscreen-tooltip">
               <svg class="icon-enter-fullscreen" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4H4v4m12-4h4v4M4 16v4h4m12-4v4h-4"/></svg>
               <svg class="icon-exit-fullscreen" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h4V4m12 4h-4V4M8 20v-4H4m12 0h4v4"/></svg>
             </media-fullscreen-button>
+            <media-tooltip id="ankh-fullscreen-tooltip" data-ankh-tooltip-target="fullscreen" class="ankh-tooltip"><media-tooltip-label></media-tooltip-label></media-tooltip>
+            </media-tooltip-group>
           </media-controls-group>
         </div>
       </div>

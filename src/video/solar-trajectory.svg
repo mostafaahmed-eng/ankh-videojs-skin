@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 64" preserveAspectRatio="none">
+  <path d="M14 48Q500-28 986 48" fill="none" stroke="#fff" stroke-width="3"/>
+  <path d="M14 55H986" fill="none" stroke="#fff" stroke-opacity=".26" stroke-width="1"/>
+  <path d="M14 53V62M62.6 53V58M111.2 53V62M159.8 53V58M208.4 53V62M257 53V58M305.6 53V62M354.2 53V58M402.8 53V62M451.4 53V58M500 53V62M548.6 53V58M597.2 53V62M645.8 53V58M694.4 53V62M743 53V58M791.6 53V62M840.2 53V58M888.8 53V62M937.4 53V58M986 53V62" fill="none" stroke="#fff" stroke-opacity=".72" stroke-width="1"/>
+</svg>

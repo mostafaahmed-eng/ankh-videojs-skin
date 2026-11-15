@@ -27,10 +27,11 @@ Restart Vite after changing these values. Supply a browser-playable source URL a
 - `src/video/skin.html` composes the player container, real Video.js controls, seek slider, state indicators, error dialog, status announcer, shortcuts, and gestures.
 - `src/video/skin.ts` explicitly registers each Video.js v10 custom element used by that composition.
 - `src/video/skin.css` defines layout, interaction states, focus, contrast, and responsive behavior.
+- `src/video/solar-trajectory.svg` draws the responsive mask used for the arc and its instrument graduations.
 - `src/video/theme.css` contains reusable design tokens.
 - `apps/preview/` contains the official CLI workbench and the ANKH showcase route. The skin source in `src/` can move into a consuming application.
 
-The Solar Timeline uses Video.js `media-time-slider`, slider parts, and chapter support. The Video.js component owns position, buffering, seeking, keyboard interaction, and slider semantics; CSS supplies the gold progress and solar-disc handle. Time labels use the official time components. Optional controls hide automatically when the attached media does not support the feature.
+The Solar Arc uses Video.js `media-time-slider`, slider parts, chapter support, and time previews. The accessible Video.js slider remains the source of position, buffering, seeking, keyboard interaction, and slider semantics. Skin code follows its published fill value to place the visual solar disc on the responsive quadratic arc; an SVG mask draws the curve, graduations, and played, buffered, and unplayed states. The full-width slider remains the actual input. Its translated `Seek` label and time value come from Video.js. Native Video.js tooltips follow button names and state. Optional controls hide automatically when the attached media does not support the feature.
 
 ## Supported controls
 

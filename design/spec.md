@@ -6,10 +6,11 @@ ANKH translates the sun's measured path into a focused media control surface. Ob
 
 ## Layout and order
 
-- A responsive 16:9 video surface with a low, opaque obsidian control shelf.
-- A full-width solar timeline sits above the primary controls. The track stays thin at rest and gains a larger invisible hit area; a gold fill and ringed disc identify exact progress.
+- A responsive 16:9 video surface with a low instrument shelf: a fine solar-gold datum, restrained mineral striation, and no enclosing rectangular card border.
+- A full-width solar timeline sits above the primary controls. Its measured path rises into a shallow arch, with a precise lower time scale, fine graduations, and separate unplayed, buffered, and played states. A gold solar disc follows the curve. The full-width Video.js slider remains the real input and supplies a large touch target.
 - Primary row: play/pause, elapsed and total time, flexible space, mute and volume slider, speed, captions when tracks exist, PiP when supported, fullscreen.
-- A restrained centered play affordance appears only before playback starts and after end; all actions remain official Video.js UI components.
+- A restrained centered play affordance appears only before playback starts and after end; the primary play control uses a solar ring, and all actions remain official Video.js UI components.
+- A compact responsive editorial header keeps the live player controls visible near the top of a typical desktop viewport.
 - Chapter markers appear only when a chapters text track exists.
 
 ## Controls and states
@@ -37,5 +38,6 @@ The player uses container-width rules, not viewport assumptions. At narrow sizes
 ## Derived implementation choices
 
 - Native system fonts avoid an unlicensed font dependency.
-- A solid translucent-black shelf and a gradient scrim preserve control contrast across variable video frames.
-- Ankh symbolism is represented by the circular sun-disc seek thumb and a slim vertical axis in the wordmark, not decorative glyphs.
+- A translucent obsidian scrim preserves control contrast across variable video frames; the shelf uses only a fine upper rule and subtle mineral striation.
+- The arc is a decorative rendering of the same linear media time scale; the Video.js slider remains underneath so pointer, touch, and keyboard seeking share exact state and semantics.
+- Ankh symbolism appears in the circular solar-disc seek thumb and the slim vertical axis in the wordmark, without decorative glyphs.

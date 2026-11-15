@@ -81,65 +81,98 @@
 }
 
 .ankh-control-shelf {
+  position: relative;
   width: 100%;
-  padding: 15px 18px 10px;
+  padding: 7px 18px 9px;
   box-sizing: border-box;
-  background: var(--ankh-surface);
-  border: 1px solid rgb(232 220 196 / 16%);
+  background:
+    repeating-linear-gradient(112deg, transparent 0 46px, rgb(232 220 196 / 1.8%) 47px 48px, transparent 49px 92px),
+    linear-gradient(180deg, rgb(11 13 16 / 62%), var(--ankh-surface) 26%);
+  border: 0;
+  border-top: 1px solid rgb(212 175 55 / 60%);
+  box-shadow: inset 0 1px rgb(245 243 239 / 7%);
 }
+
+.ankh-control-shelf::before,
+.ankh-control-shelf::after {
+  position: absolute;
+  top: -3px;
+  width: 24px;
+  height: 5px;
+  background: var(--ankh-gold);
+  content: "";
+}
+.ankh-control-shelf::before { left: 14px; }
+.ankh-control-shelf::after { right: 14px; }
 
 .ankh-timeline {
   position: relative;
   display: block;
   width: 100%;
-  height: 30px;
-  margin: 0 0 4px;
+  height: 62px;
+  margin: 0 0 1px;
   touch-action: none;
   cursor: pointer;
+  container-type: inline-size;
+  isolation: isolate;
   --media-slider-fill: 0%;
   --media-slider-buffer: 0%;
 }
 
 .ankh-track {
   position: absolute;
-  inset: auto 0 13px;
+  inset: 0;
   display: block;
-  height: 3px;
+  height: 58px;
   overflow: visible;
-  background: rgb(245 243 239 / 32%);
-  transition: height var(--ankh-motion-fast) var(--ankh-ease), background var(--ankh-motion-fast);
+  background: transparent;
 }
 
-.ankh-timeline:hover .ankh-track,
-.ankh-timeline[data-interactive] .ankh-track {
-  height: 5px;
-  background: rgb(245 243 239 / 43%);
+.ankh-track::before {
+  position: absolute;
+  inset: 0;
+  background: rgb(245 243 239 / 35%);
+  content: "";
+  -webkit-mask: url("./solar-trajectory.svg") center / 100% 100% no-repeat;
+  mask: url("./solar-trajectory.svg") center / 100% 100% no-repeat;
 }
 
 .ankh-buffer,
 .ankh-fill {
   position: absolute;
-  inset: 0 auto 0 0;
+  inset: 0;
   display: block;
-  height: 100%;
+  width: 100%;
+  height: 58px;
   pointer-events: none;
+  transition: clip-path 100ms linear;
+  -webkit-mask: url("./solar-trajectory.svg") center / 100% 100% no-repeat;
+  mask: url("./solar-trajectory.svg") center / 100% 100% no-repeat;
 }
 
 .ankh-buffer {
-  width: var(--media-slider-buffer);
-  background: rgb(232 220 196 / 45%);
+  background: rgb(232 220 196 / 72%);
+  clip-path: inset(0 calc(100% - var(--media-slider-buffer)) 0 0);
+  -webkit-clip-path: inset(0 calc(100% - var(--media-slider-buffer)) 0 0);
 }
 
 .ankh-fill {
-  width: var(--media-slider-fill);
+  z-index: 1;
   background: var(--ankh-gold);
-  box-shadow: 0 0 10px rgb(212 175 55 / 30%);
+  clip-path: inset(0 calc(100% - var(--media-slider-fill)) 0 0);
+  -webkit-clip-path: inset(0 calc(100% - var(--media-slider-fill)) 0 0);
+}
+
+.ankh-timeline[data-dragging] .ankh-fill {
+  clip-path: inset(0 calc(100% - var(--media-slider-pointer)) 0 0);
+  -webkit-clip-path: inset(0 calc(100% - var(--media-slider-pointer)) 0 0);
+  transition-duration: 0ms;
 }
 
 .ankh-sun-thumb {
   position: absolute;
   z-index: 2;
-  top: 50%;
+  top: 48px;
   left: var(--media-slider-fill);
   display: grid;
   width: 20px;
@@ -221,6 +254,23 @@
   align-items: center;
 }
 
+.ankh-tooltip-group { display: contents; }
+.ankh-tooltip {
+  --media-tooltip-side-offset: 8px;
+  --media-tooltip-boundary-offset: 8px;
+  z-index: 5;
+  max-width: 180px;
+  padding: 5px 8px;
+  color: var(--ankh-ivory);
+  font-size: 11px;
+  line-height: 1.35;
+  white-space: nowrap;
+  background: #17191c;
+  border: 1px solid var(--ankh-line);
+  box-shadow: 0 5px 16px rgb(0 0 0 / 48%);
+}
+.ankh-tooltip:not([data-open]) { display: none; }
+
 .ankh-control-row {
   justify-content: space-between;
   gap: 16px;
@@ -263,14 +313,19 @@
 .ankh-button svg,
 .ankh-play-button svg,
 .ankh-center-play svg {
-  width: 21px;
-  height: 21px;
+  width: 20px;
+  height: 20px;
   fill: none;
   stroke: currentColor;
   stroke-width: 1.8;
   stroke-linecap: round;
   stroke-linejoin: round;
 }
+
+.ankh-play-button { color: var(--ankh-gold); border-color: rgb(212 175 55 / 58%); }
+.ankh-play-button svg { width: 23px; height: 23px; }
+.ankh-play-button .solar-ring { display: block; }
+.ankh-play-button .icon-play { fill: currentColor; stroke: none; }
 
 .ankh-play-button .icon-play,
 .ankh-center-play .icon-play,
@@ -344,9 +399,9 @@
 .ankh-time {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
+  gap: 5px;
   color: var(--ankh-sandstone);
-  font-size: 12px;
+  font-size: 11px;
   font-variant-numeric: tabular-nums;
   letter-spacing: .02em;
   white-space: nowrap;
@@ -359,7 +414,7 @@
 .ankh-volume {
   position: relative;
   display: block;
-  width: 84px;
+  width: 76px;
   height: 32px;
   touch-action: none;
   --media-slider-fill: 100%;
@@ -499,14 +554,14 @@ media-status-announcer {
 
 @container (max-width: 620px) {
   .ankh-controls-content { padding: 10px; }
-  .ankh-control-shelf { padding: 8px 9px 5px; }
+  .ankh-control-shelf { padding: 5px 9px 6px; }
   .ankh-control-row { gap: 5px; }
   .ankh-primary-controls, .ankh-secondary-controls { gap: 2px; }
-  .ankh-button, .ankh-play-button { width: 40px; height: 40px; }
+  .ankh-button, .ankh-play-button { width: 44px; height: 44px; }
   .ankh-time { gap: 4px; font-size: 10px; }
   .ankh-volume { width: 58px; }
   .ankh-rate { min-width: 38px; padding-inline: 4px; font-size: 10px; }
-  .ankh-timeline { height: 26px; }
+  .ankh-timeline { height: 58px; }
 }
 
 @container (max-width: 440px) {
@@ -514,11 +569,11 @@ media-status-announcer {
   .ankh-volume { display: none; }
   .ankh-rate { display: none; }
   .ankh-controls-content { padding: 8px; }
-  .ankh-control-shelf { padding: 5px 6px 4px; }
+  .ankh-control-shelf { padding: 3px 6px 4px; }
   .ankh-time { font-size: 9px; }
   .ankh-primary-controls, .ankh-secondary-controls { gap: 0; }
   .ankh-button, .ankh-play-button { width: 44px; height: 44px; }
-  .ankh-button svg, .ankh-play-button svg { width: 19px; height: 19px; }
+  .ankh-button svg, .ankh-play-button svg { width: 20px; height: 20px; }
 }
 
 @media (hover: hover) and (pointer: fine) {

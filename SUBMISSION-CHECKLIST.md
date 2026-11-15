@@ -7,8 +7,8 @@
 - [x] Original submission code licensed under Apache License 2.0.
 - [x] Demo media attribution and license documented.
 - [ ] Confirm hosted-registry Scaffold source parity when `shadcn.videojs.org` is reachable.
-- [x] Complete typecheck, production build, and real-browser interaction checks.
+- [x] Complete typecheck, production build, and cross-browser interaction checks.
 - [x] Inspect required viewport sizes and save the requested screenshots.
 - [x] Update `TEST-REPORT.md` with browser evidence and limitations.
-- [ ] Replace the demo asset with the final Mux playback asset if required.
+- [ ] Replace the demo asset with the final Mux playback asset when provided; keep current licensed demo for this submission.
 - [ ] Confirm competition-specific packaging and submission form requirements.

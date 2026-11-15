@@ -29,7 +29,7 @@ body.showcase-body {
 
 .showcase-header {
   display: flex;
-  min-height: 88px;
+  min-height: 62px;
   align-items: center;
   justify-content: space-between;
   border-bottom: 1px solid rgb(232 220 196 / 16%);
@@ -68,10 +68,10 @@ body.showcase-body {
 
 .showcase-intro {
   display: grid;
-  grid-template-columns: 1fr minmax(260px, 370px);
+  grid-template-columns: minmax(0, 1fr) minmax(250px, 370px);
   align-items: end;
-  gap: 12px 48px;
-  padding: clamp(52px, 8vw, 112px) 0 42px;
+  gap: 8px 48px;
+  padding: 24px 0 18px;
 }
 
 .eyebrow {
@@ -79,7 +79,7 @@ body.showcase-body {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin: 0 0 16px;
+  margin: 0 0 2px;
 }
 
 .eyebrow span {
@@ -93,10 +93,10 @@ body.showcase-body {
 h1 {
   margin: 0;
   font-family: Georgia, "Times New Roman", serif;
-  font-size: clamp(54px, 8.4vw, 112px);
+  font-size: clamp(44px, 5.4vw, 72px);
   font-weight: 500;
   letter-spacing: -.055em;
-  line-height: .91;
+  line-height: .98;
 }
 
 h1 em {
@@ -106,17 +106,18 @@ h1 em {
 
 .intro-copy {
   max-width: 34ch;
-  margin: 0 0 8px;
+  margin: 0 0 2px;
   color: #c1bdb3;
   font-family: Inter, ui-sans-serif, system-ui, sans-serif;
-  font-size: clamp(14px, 1.2vw, 17px);
-  line-height: 1.75;
+  font-size: clamp(13px, 1.05vw, 15px);
+  line-height: 1.6;
 }
 
 .showcase-player {
   position: relative;
-  padding: 10px;
-  background: linear-gradient(135deg, rgb(232 220 196 / 14%), rgb(232 220 196 / 3%) 28%, rgb(212 175 55 / 10%));
+  padding: 7px;
+  border: 1px solid rgb(212 175 55 / 32%);
+  background: #0b0d10;
 }
 
 #player-mount {
@@ -125,10 +126,17 @@ h1 em {
   background: #050607;
 }
 
+@media (min-width: 900px) {
+  #player-mount {
+    width: min(100%, calc((100svh - 250px) * 1.7778));
+    margin-inline: auto;
+  }
+}
+
 .player-caption {
   display: flex;
   justify-content: space-between;
-  padding: 13px 2px 2px;
+  padding: 9px 2px 1px;
   font-size: 9px;
 }
 
@@ -146,7 +154,7 @@ h1 em {
   grid-template-columns: 42px minmax(0, 640px) 1fr;
   align-items: start;
   gap: 22px;
-  padding: clamp(44px, 7vw, 84px) 0;
+  padding: clamp(28px, 4vw, 48px) 0;
 }
 
 .note-index { color: var(--gold); padding-top: 3px; }
@@ -171,8 +179,9 @@ h1 em {
 .footer-dot { color: var(--gold); padding: 0 5px; }
 
 @media (max-width: 740px) {
-  .showcase-header { min-height: 70px; }
-  .showcase-intro { grid-template-columns: 1fr; gap: 16px; padding-top: 54px; }
+  .showcase-header { min-height: 56px; }
+  .showcase-intro { grid-template-columns: 1fr; gap: 10px; padding: 24px 0 16px; }
+  h1 { font-size: clamp(42px, 11vw, 58px); }
   .intro-copy { max-width: 42ch; }
   .showcase-player { padding: 5px; }
   .showcase-note { grid-template-columns: 28px 1fr; gap: 12px; }
