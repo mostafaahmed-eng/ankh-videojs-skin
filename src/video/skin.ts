@@ -1,4 +1,5 @@
 import '@videojs/html/ui/container';
+import '@videojs/html/ui/poster';
 import '@videojs/html/ui/controls';
 import '@videojs/html/ui/controls-backdrop';
 import '@videojs/html/ui/controls-content';
@@ -99,7 +100,7 @@ function watchSolarSlider(slider: Element): void {
   for (const eventName of ['pointerdown', 'pointermove', 'pointerup']) {
     slider.addEventListener(eventName, update, { passive: true });
   }
-  const media = slider.closest('video-player')?.querySelector('video');
+  const media = slider.closest('video-player')?.querySelector('video, mux-video') as (Element & { currentTime: number; duration: number }) | null;
   for (const eventName of ['timeupdate', 'seeked', 'durationchange', 'loadedmetadata']) media?.addEventListener(eventName, update);
   if (media && navigator.vendor.includes('Apple')) {
     let fallbackProgress: number | undefined;

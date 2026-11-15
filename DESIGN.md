@@ -23,6 +23,10 @@ The slider remains the official Video.js `media-time-slider`, with its slider tr
 
 The control shelf preserves official play, pause, replay, mute, volume, captions, playback-rate, PiP, and fullscreen behavior. Availability-based controls hide when the media cannot provide the feature. Native caption and chapter tracks remain configurable in the media element. Error and status components keep the official accessible behavior; localized component labels are not replaced with hardcoded UI copy.
 
+## Media and poster
+
+The production showcase uses the official Video.js v10 `@videojs/mux-video` HLS adapter with public playback ID `QlDrE00kgqfngiVLY01qa011sGYQFV1ftW7VARb4QSCZZA`. Mux Player and iframe embeds are not used. The original ANKH poster is supplied through Video.js `media-poster`, so provider-generated Mux thumbnails do not replace the approved artwork. The adapter allows automatic rendition selection up to 2160p while retaining adaptive playback for smaller viewports and limited bandwidth. A licensed Big Buck Bunny MP4 remains a development fallback only.
+
 ## Accessibility
 
 - Focus uses a high-contrast gold ring with a dark offset.
@@ -36,6 +40,6 @@ The control shelf preserves official play, pause, replay, mute, volume, captions
 
 ## Layout
 
-The player is a 16:9 container with bottom-aligned controls and a broad timeline. At compact widths, secondary volume and playback-rate widgets yield space to the seeking and core actions. The showcase keeps the player as the dominant artifact and leaves the design concept in one short explanatory note.
+The player is a 16:9 media surface with bottom-aligned controls and a broad timeline. At compact widths, the controls move below the video and wrap into an efficient shelf while preserving the solar arc and touch targets. Fullscreen returns the shelf to an overlay. The showcase keeps the player as the dominant artifact and leaves the design concept in one short explanatory note.
 
 For the detailed implementation spec, see [`design/spec.md`](design/spec.md).

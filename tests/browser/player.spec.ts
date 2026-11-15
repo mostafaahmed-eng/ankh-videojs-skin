@@ -1,7 +1,8 @@
 import { expect, test } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 
-const videoSelector = '.ankh-player video';
+const videoSelector = '.ankh-player > mux-video, .ankh-player > video';
+const muxPlaybackId = 'QlDrE00kgqfngiVLY01qa011sGYQFV1ftW7VARb4QSCZZA';
 let browserErrors: string[] = [];
 
 test.beforeEach(async ({ page }) => {
@@ -16,13 +17,31 @@ test.afterEach(() => {
   expect(browserErrors, 'unexpected browser console or page errors').toEqual([]);
 });
 
-async function loadShowcase(page: import('@playwright/test').Page): Promise<void> {
+async function loadShowcase(
+  page: import('@playwright/test').Page,
+  options: { fallbackForUnsupportedHls?: boolean } = {},
+): Promise<void> {
   await page.goto('/showcase.html');
   await page.locator(videoSelector).waitFor();
+  const muxUnsupported = await page.evaluate(() => {
+    const video = document.createElement('video');
+    return typeof MediaSource === 'undefined' && !video.canPlayType('application/vnd.apple.mpegurl');
+  });
+  if (muxUnsupported && options.fallbackForUnsupportedHls !== false) {
+    await page.locator('.ankh-player > mux-video').evaluate((element) => {
+      const fallback = document.createElement('video');
+      fallback.className = 'ankh-media';
+      fallback.src = 'https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/1080/Big_Buck_Bunny_1080_10s_1MB.mp4';
+      fallback.poster = '/ankh-solar-poster.svg';
+      fallback.playsInline = true;
+      fallback.preload = 'auto';
+      element.replaceWith(fallback);
+    });
+  }
   await page.waitForFunction(
     (selector) => {
       const video = document.querySelector<HTMLVideoElement>(selector);
-      return Boolean(video && (video.readyState >= 1 || video.error) && Number.isFinite(video.duration));
+      return Boolean(video && ((video.readyState >= 1 && Number.isFinite(video.duration)) || video.error));
     },
     videoSelector,
     { timeout: 60_000 },
@@ -48,7 +67,7 @@ test('shows the working showcase without horizontal overflow at target widths', 
     expect(dimensions.page, `horizontal overflow at ${width}px`).toBeLessThanOrEqual(dimensions.viewport);
     expect(dimensions.player).toBeGreaterThan(0);
     expect(dimensions.controls.every(({ width, height }) => width >= 44 && height >= 44), `undersized touch control at ${width}px`).toBe(true);
-    if (width === 390) await capture(page, 'artifacts/v3-mobile.png');
+    if (width === 390) await capture(page, 'artifacts/final-mobile.png');
   }
   await page.setViewportSize({ width: 1440, height: 900 });
   await loadShowcase(page);
@@ -58,7 +77,61 @@ test('shows the working showcase without horizontal overflow at target widths', 
     expect(bounds, 'main control should be rendered').not.toBeNull();
     expect(bounds!.y + bounds!.height, 'main control should be above the initial desktop fold').toBeLessThanOrEqual(viewportHeight);
   }
-  await capture(page, 'artifacts/v3-desktop.png', false);
+  await capture(page, 'artifacts/final-desktop.png', false);
+  await page.locator('.ankh-player').screenshot({ path: 'artifacts/submission-hero.png' });
+});
+
+test('production media uses the public Mux asset and verifies stream metadata or supported error handling', async ({ page }) => {
+  const manifestResponses: Array<{ status: number; url: string }> = [];
+  page.on('response', (response) => {
+    if (response.url().includes(muxPlaybackId) && response.url().includes('.m3u8')) {
+      manifestResponses.push({ status: response.status(), url: response.url() });
+    }
+  });
+  await loadShowcase(page, { fallbackForUnsupportedHls: false });
+  const mux = page.locator('.ankh-player mux-video');
+  await expect(mux).toHaveCount(1);
+  const media = await mux.evaluate((element) => {
+    const player = element as HTMLElement & {
+      source: { playbackId?: string; maxAutoResolution?: string } | null;
+      currentTime: number;
+      duration: number;
+      videoWidth: number;
+      videoHeight: number;
+      readyState: number;
+    };
+    return {
+      playbackId: player.source?.playbackId,
+      maxAutoResolution: player.source?.maxAutoResolution,
+      duration: player.duration,
+      width: player.videoWidth,
+      height: player.videoHeight,
+      readyState: player.readyState,
+      currentTime: player.currentTime,
+    };
+  });
+  expect(media.playbackId).toBe(muxPlaybackId);
+  expect(media.maxAutoResolution).toBe('2160p');
+  const muxUnsupported = await page.evaluate(() => {
+    const video = document.createElement('video');
+    return typeof MediaSource === 'undefined' && !video.canPlayType('application/vnd.apple.mpegurl');
+  });
+  await expect.poll(() => manifestResponses.some(({ status }) => status === 200)).toBe(true);
+  expect(manifestResponses.some(({ status }) => status >= 400)).toBe(false);
+  await expect(page.locator('.ankh-player > video')).toHaveCount(0);
+  await expect(page.locator('.ankh-poster img')).toHaveAttribute('src', '/ankh-solar-poster.svg');
+  await expect(page.locator('.player-caption')).toContainText('ANKH — A JOURNEY THROUGH TIME');
+  if (muxUnsupported) {
+    await expect.poll(() => mux.evaluate((element) => Boolean((element as HTMLMediaElement).error))).toBe(true);
+    await expect(page.locator('.ankh-error-dialog')).toHaveAttribute('data-open', '');
+    return;
+  }
+  expect(media.readyState).toBeGreaterThanOrEqual(1);
+  expect(media.duration).toBeGreaterThan(19);
+  expect(media.duration).toBeLessThan(23);
+  expect(media.width).toBeGreaterThan(0);
+  expect(media.height).toBeGreaterThan(0);
+  expect(Math.abs(media.width / media.height - 16 / 9)).toBeLessThan(0.03);
 });
 
 test('solar disc is the centered, keyboard-operable initial play control', async ({ page }) => {
@@ -109,7 +182,7 @@ test('small-container shelf follows the video while preserving the solar arc and
     await page.setViewportSize({ width, height: 844 });
     await loadShowcase(page);
     const layout = await page.evaluate(() => {
-      const video = document.querySelector('video')!.getBoundingClientRect();
+      const video = document.querySelector('.ankh-player > mux-video, .ankh-player > video')!.getBoundingClientRect();
       const controls = document.querySelector('.ankh-controls')!.getBoundingClientRect();
       const slider = document.querySelector('.ankh-timeline')!.getBoundingClientRect();
       const button = document.querySelector('.ankh-play-button')!.getBoundingClientRect();
@@ -118,7 +191,7 @@ test('small-container shelf follows the video while preserving the solar arc and
     expect(layout.controlsTop).toBeGreaterThanOrEqual(layout.videoBottom - 1);
     expect(layout.sliderWidth).toBeGreaterThan(0);
     expect(layout.buttonHeight).toBeGreaterThanOrEqual(44);
-    if (width === 390) await capture(page, 'artifacts/v3-mobile.png');
+    if (width === 390) await capture(page, 'artifacts/final-mobile.png');
   }
 });
 
@@ -138,11 +211,11 @@ test('plays, pauses, seeks, and toggles mute using Video.js controls', async ({ 
   if (!playBounds) throw new Error('Play button has no rendered box');
   await page.mouse.move(playBounds.x + playBounds.width / 2, playBounds.y + playBounds.height / 2);
   await expect(page.locator('.ankh-play-button')).toBeVisible();
-  await capture(page, 'artifacts/v3-playing.png');
+  await capture(page, 'artifacts/final-playing.png');
 
   await page.locator('.ankh-play-button').click();
   await expect.poll(() => video.evaluate((el: HTMLVideoElement) => el.paused)).toBe(true);
-  await capture(page, 'artifacts/v3-paused.png');
+  await capture(page, 'artifacts/final-paused.png');
 
   const slider = page.locator('.ankh-timeline');
   const thumb = page.locator('.ankh-sun-thumb');
@@ -172,7 +245,7 @@ test('plays, pauses, seeks, and toggles mute using Video.js controls', async ({ 
 
   await page.mouse.move(bounds.x + bounds.width * 0.8, bounds.y + bounds.height / 2);
   await expect.poll(() => page.locator('.ankh-preview').evaluate((el) => Number(getComputedStyle(el).opacity))).toBeGreaterThan(0);
-  await capture(page, 'artifacts/v3-seeking.png');
+  await capture(page, 'artifacts/final-seeking.png');
   const dragStart = await thumb.boundingBox();
   if (!dragStart) throw new Error('Solar disc has no rendered box');
   const targetRatio = 0.35;
@@ -214,7 +287,7 @@ test('supports keyboard focus, reduced motion, volume, and available fullscreen'
   const tooltipId = await play.getAttribute('commandfor');
   expect(tooltipId).toBeTruthy();
   await expect(page.locator(`#${tooltipId}`)).toBeVisible();
-  await capture(page, 'artifacts/v3-keyboard-focus.png');
+  await capture(page, 'artifacts/final-keyboard-focus.png');
   await page.keyboard.press('Space');
   await expect.poll(() => video.evaluate((el: HTMLVideoElement) => !el.paused)).toBe(true);
   await expect(page.locator(`#${tooltipId} media-tooltip-label`)).toContainText(/pause/i);
@@ -236,7 +309,7 @@ test('supports keyboard focus, reduced motion, volume, and available fullscreen'
   if (await fullscreen.isVisible()) {
     await fullscreen.click();
     await expect.poll(() => page.evaluate(() => Boolean(document.fullscreenElement))).toBe(true);
-    await capture(page, 'artifacts/v3-fullscreen.png', false);
+    await capture(page, 'artifacts/final-fullscreen.png', false);
     await page.keyboard.press('Escape');
     await expect.poll(() => page.evaluate(() => Boolean(document.fullscreenElement))).toBe(false);
   }

@@ -1,35 +1,52 @@
-# ANKH 2.0 test report
+# ANKH release verification
 
-## Verification
+## Commands and browser results
 
 - `npm run typecheck` — passed.
-- `npm run build` — passed.
-- `npm run test:browser` — passed, 15 tests across Chromium, Firefox, and WebKit (5 per engine).
-- Playwright tests desktop Chromium, Firefox, and WebKit. Chromium captures the six requested screenshots.
+- `npm run build` — passed. The production bundle is in `dist/`; Vite reports the Mux adapter chunk above its 500 kB advisory threshold (about 640 kB raw / 197 kB gzip). It is dynamically imported only when a Mux playback ID is configured.
+- `npm run test:browser` — 30/30 passed: Chromium 10/10, Firefox 10/10, and WebKit 10/10.
+- `@axe-core/playwright` WCAG 2.1 A/AA audit — zero reported violations in each engine.
 
-## Coverage
+All three browser projects verify the public HLS manifest and ANKH Mux source configuration. Chromium and Firefox play the Mux stream. This installed Playwright WebKit has neither MediaSource nor native HLS support; its Mux test verifies the public manifest and that the Video.js error dialog appears. To test the rest of the WebKit UI and touch interactions, the browser test harness substitutes the existing licensed MP4 only after detecting that platform capability gap. It does not change production media configuration.
 
-- Showcase layout and overflow at 320, 375, 390, 768, 1024, and 1440 CSS pixels; main controls remain above the 1440 × 900 desktop fold.
-- Real playback, pause, pointer click and drag seeking, buffered progress, solar-disc alignment to actual current time and curved path, timeline time preview, keyboard slider semantics and seeking, touch emulation at 390px, volume, playback rate, captions availability, chapters generated from live Video.js cues, reduced motion, focus-visible, dynamic play tooltip, and fullscreen enter/exit.
-- Browser tests collect page and console errors.
-- A WebKit-only mouse-drag fallback is exercised by the cross-browser drag test; Video.js slider state and ARIA remain the source for the thumb and seek semantics.
+## Mux asset evidence
+
+- Playback ID: `QlDrE00kgqfngiVLY01qa011sGYQFV1ftW7VARb4QSCZZA`.
+- Chromium and Firefox loaded and played the Mux HLS stream with the `@videojs/html` `mux-video` component; observed browser engine: `hlsjs`.
+- Measured duration: approximately 21.438 seconds (the browser regression assertion allows 19–23 seconds for manifest variation).
+- A Chromium browser session loaded master and rendition manifests with HTTP 200. Automated browser coverage verifies an HTTP 200 Mux manifest in every engine.
+- Playback, pause, pointer/touch/keyboard seeking, solar-disc synchronization, buffering, mute/volume, playback speed, and fullscreen were exercised with actual Mux media in Chromium and Firefox.
+- The stream reported 1280×720 in the exercised viewport; the source is configured with a 2160p maximum auto-resolution. This test does not prove that the 2160p rendition was selected or played.
+- No caption, chapter, or audio rendition/track was exposed by the inspected media metadata. The captions button correctly remains unavailable; chapter rendering is separately covered using real Video.js chapter cues created by the test. Since no audio rendition was exposed, audible volume behavior cannot be confirmed for this asset.
+- The source uses the supplied public ID directly. The app has no production fallback path: a production build without `VITE_MUX_PLAYBACK_ID` throws. The Big Buck Bunny MP4 is available only for development and WebKit capability fallback in the test harness.
+
+## Accessibility and responsive coverage
+
+- Keyboard focus, Space play/pause, arrow-key seeking, slider role/name/value, visible focus, reduced-motion preferences, Escape from fullscreen, and fullscreen enter/exit are checked.
+- Pointer preview timestamps, Dawn/Zenith/Dusk landmarks, mouse/touch/keyboard seeking, accurate seek state, and the curved solar-disc position are checked.
+- Layout and touch targets are checked at 320, 375, 390, 768, 1024, and 1440 CSS pixels. The main player controls remain above the 1440×900 initial desktop fold.
+- Axe checks, browser console/page errors, player error handling, chapter availability, and horizontal overflow are covered.
+- This is automated browser and axe evidence; no physical-device or screen-reader test was performed.
 
 ## Screenshots
 
-- `artifacts/v2-desktop.png`
-- `artifacts/v2-mobile.png`
-- `artifacts/v2-playing.png`
-- `artifacts/v2-paused.png`
-- `artifacts/v2-fullscreen.png`
-- `artifacts/v2-keyboard-focus.png`
+Captured from the Chromium browser run with the configured Mux source:
 
-## Comparison with the baseline
+- `artifacts/final-desktop.png` — poster and initial player at desktop size.
+- `artifacts/final-mobile.png` — compact 390px player.
+- `artifacts/final-playing.png` — playing Mux footage and overlay controls.
+- `artifacts/final-paused.png` — paused playback state.
+- `artifacts/final-fullscreen.png` — fullscreen player.
+- `artifacts/final-seeking.png` — timestamp preview and solar handle during seeking.
+- `artifacts/final-keyboard-focus.png` — visible keyboard focus and tooltip.
+- `artifacts/submission-hero.png` — clean player-only poster view.
 
-The baseline `artifacts/desktop.png` shows a straight progress rail, full rectangular control panel, and a two-line oversized heading. The v2 screenshots show the live solar arc and position disc, fine time graduations, a borderless instrument shelf, and a one-line heading. The player now fits with its main controls inside the initial 1440 × 900 desktop viewport.
+All requested screenshots were visually inspected. The playing capture shows the supplied footage; the hero capture shows the approved ANKH poster.
 
-## Known limits
+## Production build and release limits
 
-- The hosted Video.js Scaffold registry request at `https://shadcn.videojs.org` timed out during initial setup. The project uses the official CLI workbench and documented Video.js components, with skin source authored locally.
-- The demo remains the externally hosted, 10-second Big Buck Bunny excerpt. No replacement footage was provided or made.
-- The default media has no caption or chapter tracks. Caption and chapter UI are tested with availability and synthetic in-memory chapter cues.
-- Browser tests cover Playwright's desktop Chromium, Firefox, and WebKit builds, with emulated touch input. Physical devices and assistive technology/screen-reader behavior are not covered by automation.
+- `npm run build` creates static files in `dist/`; `vercel.json` sets that output and rewrites `/` to `/showcase.html`.
+- The built showcase is smoke-tested locally at `http://127.0.0.1:4173/showcase.html`; the Vercel root rewrite is host configuration and is not applied by Vite preview.
+- No deployment was performed.
+- The footage creator/copyright/license attribution requirements have not been provided yet. Resolve this before public release. Do not imply ownership or a license for the Mux footage.
+- Competition packaging and submission form requirements remain to be confirmed.

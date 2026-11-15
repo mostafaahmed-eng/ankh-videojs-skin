@@ -13,16 +13,16 @@ The official workbench opens at the printed URL (normally `http://localhost:5173
 
 ## Configure media
 
-The preview uses a 10-second, 1080p MP4 excerpt from Blender Foundation's Big Buck Bunny by default. Change it without editing source by creating `.env.local`:
+The showcase uses the public Mux asset configured in the root `.env` file. `VITE_MUX_PLAYBACK_ID` is a public playback identifier, not a private API credential. The Vite config reads that root file through `envDir`, so development and production builds use the same asset. Production code refuses to silently select the demo if the Mux ID is missing.
+
+The licensed 10-second Big Buck Bunny MP4 remains available as a development fallback if the Mux ID is unset. Change fallback source and poster URLs without editing source by creating `.env.local`:
 
 ```dotenv
 VITE_DEMO_VIDEO_URL=https://your-cdn.example/video.mp4
 VITE_DEMO_POSTER_URL=/your-poster.jpg
-# Optional: set only after a real public Mux playback ID is available.
-VITE_MUX_PLAYBACK_ID=
 ```
 
-Restart Vite after changing these values. Supply a browser-playable source URL and optional poster URL. When `VITE_MUX_PLAYBACK_ID` contains a real public playback ID, the showcase loads the official `@videojs/mux-video` adapter and keeps the ANKH controls as the player interface. With the variable unset, it uses the existing MP4 development fallback. To use captions or chapters, add real `<track kind="captions">` or `<track kind="chapters">` sources to the media element; the skin's controls react to track availability.
+Restart Vite after changing environment values. The showcase uses official Video.js v10 `@videojs/mux-video`, public playback ID `QlDrE00kgqfngiVLY01qa011sGYQFV1ftW7VARb4QSCZZA`, and the unchanged ANKH solar poster. It does not use Mux Player or an iframe. The MP4 fallback is available only when the Mux ID is absent in development. To use captions or chapters, add accurate real caption or chapter tracks; the skin controls respond to track availability.
 
 ## Skin architecture
 
@@ -43,8 +43,14 @@ Play/pause/replay, accurate seek and buffered progress, current and total time, 
 
 Big Buck Bunny is an open movie by Blender Foundation, licensed under Creative Commons Attribution 3.0. The preview streams a short MP4 excerpt from [Test Videos](https://test-videos.co.uk/bigbuckbunny/mp4-h264); the film is the Blender Foundation's open movie. The official project states the film and project data may be reused with attribution. The showcase credits: **© copyright 2008, Blender Foundation / www.bigbuckbunny.org**. Source: [official download page](https://peach.blender.org/download/) and [license details](https://peach.blender.org/about/).
 
+The production showcase plays **ANKH — A Journey Through Time** from the supplied public Mux playback ID. No creator, copyright, or license credit for this footage has been supplied; add any required credit before public release. Big Buck Bunny attribution remains for the development fallback and preview workbench.
+
+## Production and deployment
+
+The Vite production command is `npm run build`; static output goes to `dist/`. `vercel.json` configures this and rewrites the production root URL to `/showcase.html`. See [DEPLOYMENT.md](DEPLOYMENT.md) for Vercel setup. Do not add private Mux keys to client environment variables; the public playback ID is safe in the static bundle.
+
 ## License
 
 Original ANKH submission code is licensed under Apache License 2.0. Video.js and other dependencies retain their own licenses. The demo footage remains under CC BY 3.0 and is served from Blender's download host; it is not included in this repository.
 
-See [DESIGN.md](DESIGN.md), [TEST-REPORT.md](TEST-REPORT.md), and [SUBMISSION-CHECKLIST.md](SUBMISSION-CHECKLIST.md).
+See [DESIGN.md](DESIGN.md), [TEST-REPORT.md](TEST-REPORT.md), [SUBMISSION-CHECKLIST.md](SUBMISSION-CHECKLIST.md), and [DEPLOYMENT.md](DEPLOYMENT.md).

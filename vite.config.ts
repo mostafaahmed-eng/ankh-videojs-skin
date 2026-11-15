@@ -9,6 +9,7 @@ const path = (file: string) => fileURLToPath(new URL(file, import.meta.url));
 // The workbench in apps/preview serves the app; `@/` imports reach the skin in src/.
 export default defineConfig({
   root: path('./apps/preview'),
+  envDir: path('.'),
   // Relative URLs, so the build works at a domain root or in a subfolder such as GitHub Pages.
   base: './',
   plugins: [tailwindcss(), react()],

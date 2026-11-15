@@ -47,6 +47,30 @@
   background: #050607;
 }
 
+.ankh-poster {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  display: block;
+  overflow: hidden;
+  background: #050607;
+  opacity: 1;
+  pointer-events: none;
+  transition: opacity var(--ankh-motion) var(--ankh-ease), visibility var(--ankh-motion);
+}
+
+.ankh-poster img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.ankh-poster:not([data-visible]) {
+  opacity: 0;
+  visibility: hidden;
+}
+
 .ankh-controls,
 .ankh-controls-content,
 .ankh-scrim {
@@ -598,6 +622,7 @@ media-status-announcer {
 }
 
 @container (max-width: 440px) {
+  .ankh-poster { inset: 0 0 auto; aspect-ratio: 16 / 9; }
   .ankh-controls { position: relative; inset: auto; }
   .ankh-controls-content { position: relative; inset: auto; display: block; padding: 8px; }
   .ankh-scrim { display: none; }
