@@ -15,14 +15,14 @@ The official workbench opens at the printed URL (normally `http://localhost:5173
 
 The showcase uses the public Mux asset configured in the root `.env` file. `VITE_MUX_PLAYBACK_ID` is a public playback identifier, not a private API credential. The Vite config reads that root file through `envDir`, so development and production builds use the same asset. Production code refuses to silently select the demo if the Mux ID is missing.
 
-The licensed 10-second Big Buck Bunny MP4 remains available as a development fallback if the Mux ID is unset. Change fallback source and poster URLs without editing source by creating `.env.local`:
+The licensed 10-second Big Buck Bunny MP4 remains available as a silent development fallback if the Mux ID is unset. Change fallback source and poster URLs without editing source by creating `.env.local`:
 
 ```dotenv
 VITE_DEMO_VIDEO_URL=https://your-cdn.example/video.mp4
 VITE_DEMO_POSTER_URL=/your-poster.jpg
 ```
 
-Restart Vite after changing environment values. The showcase uses official Video.js v10 `@videojs/mux-video`, public playback ID `QlDrE00kgqfngiVLY01qa011sGYQFV1ftW7VARb4QSCZZA`, and the unchanged ANKH solar poster. It does not use Mux Player or an iframe. The MP4 fallback is available only when the Mux ID is absent in development. To use captions or chapters, add accurate real caption or chapter tracks; the skin controls respond to track availability.
+Restart Vite after changing environment values. The showcase uses official Video.js v10 `@videojs/mux-video`, public playback ID `QlDrE00kgqfngiVLY01qa011sGYQFV1ftW7VARb4QSCZZA`, and the unchanged ANKH solar poster. It does not use Mux Player or an iframe. The MP4 fallback is available only when the Mux ID is absent in development. To let judges exercise audio, open `/showcase.html?demo=audio`; this loads the AAC-enabled Big Buck Bunny HLS test stream through Video.js's official HLS.js/native-HLS adapter. Use the footer link to return to the Mux showcase. This source is separate from the Pexels film.
 
 ## Skin architecture
 
@@ -41,9 +41,9 @@ Play/pause/replay, accurate seek and buffered progress, current and total time, 
 
 ## Demo media and attribution
 
-Big Buck Bunny is an open movie by Blender Foundation, licensed under Creative Commons Attribution 3.0. The preview streams a short MP4 excerpt from [Test Videos](https://test-videos.co.uk/bigbuckbunny/mp4-h264); the film is the Blender Foundation's open movie. The official project states the film and project data may be reused with attribution. The showcase credits: **© copyright 2008, Blender Foundation / www.bigbuckbunny.org**. Source: [official download page](https://peach.blender.org/download/) and [license details](https://peach.blender.org/about/).
+Big Buck Bunny is an open movie by Blender Foundation, licensed under Creative Commons Attribution 3.0. The development preview streams a short silent MP4 excerpt from [Test Videos](https://test-videos.co.uk/bigbuckbunny/mp4-h264). The optional audio demo uses the public [Big Buck Bunny HLS test stream](https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8); its variants include AAC audio. The original movie and license are documented by the [Blender Foundation](https://peach.blender.org/download/) and its [license details](https://peach.blender.org/about/). The audio demo credit links to these license details.
 
-The production showcase plays **ANKH — A Journey Through Time** from the supplied public Mux playback ID. No creator, copyright, or license credit for this footage has been supplied; add any required credit before public release. Big Buck Bunny attribution remains for the development fallback and preview workbench.
+The production showcase plays **ANKH — A Journey Through Time** from the supplied public Mux playback ID. Its clickable credit is **FILM: GREAT PYRAMIDS OF GIZA · K / PEXELS**, linking to [the original Pexels film](https://www.pexels.com/video/stunning-view-of-the-great-pyramids-in-giza-32537704/). It is identified as being under the [Pexels License](https://www.pexels.com/license/). The footage is excluded from the Apache 2.0 license covering original ANKH skin code. Big Buck Bunny keeps its separate CC BY 3.0 credit and is used only in development/audio demos.
 
 ## Production and deployment
 
@@ -51,6 +51,6 @@ The Vite production command is `npm run build`; static output goes to `dist/`. `
 
 ## License
 
-Original ANKH submission code is licensed under Apache License 2.0. Video.js and other dependencies retain their own licenses. The demo footage remains under CC BY 3.0 and is served from Blender's download host; it is not included in this repository.
+Original ANKH submission code is licensed under Apache License 2.0. Video.js and other dependencies retain their own licenses. The Great Pyramids footage remains under the Pexels License and is not covered by Apache 2.0. Big Buck Bunny remains under CC BY 3.0. Neither video file is included in this repository.
 
 See [DESIGN.md](DESIGN.md), [TEST-REPORT.md](TEST-REPORT.md), [SUBMISSION-CHECKLIST.md](SUBMISSION-CHECKLIST.md), and [DEPLOYMENT.md](DEPLOYMENT.md).

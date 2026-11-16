@@ -15,6 +15,7 @@
     "deploy:cloudflare": "npm run build && npx --yes wrangler@4 pages deploy dist --project-name ankh"
   },
   "dependencies": {
+    "@videojs/hlsjs-video": "^10.4.0",
     "@videojs/html": "10.4.0",
     "@videojs/mux-video": "^10.4.0"
   },

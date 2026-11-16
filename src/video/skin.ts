@@ -100,7 +100,7 @@ function watchSolarSlider(slider: Element): void {
   for (const eventName of ['pointerdown', 'pointermove', 'pointerup']) {
     slider.addEventListener(eventName, update, { passive: true });
   }
-  const media = slider.closest('video-player')?.querySelector('video, mux-video') as (Element & { currentTime: number; duration: number }) | null;
+  const media = slider.closest('video-player')?.querySelector('video, mux-video, hlsjs-video') as (Element & { currentTime: number; duration: number }) | null;
   for (const eventName of ['timeupdate', 'seeked', 'durationchange', 'loadedmetadata']) media?.addEventListener(eventName, update);
   if (media && navigator.vendor.includes('Apple')) {
     let fallbackProgress: number | undefined;
@@ -115,7 +115,11 @@ function watchSolarSlider(slider: Element): void {
     document.addEventListener('pointerup', () => {
       const progress = fallbackProgress;
       fallbackProgress = undefined;
-      if (progress !== undefined) requestAnimationFrame(() => { media.currentTime = progress * media.duration; });
+      if (progress !== undefined) {
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+          media.currentTime = progress * media.duration;
+        }));
+      }
     }, true);
     document.addEventListener('pointercancel', () => { fallbackProgress = undefined; }, true);
   }

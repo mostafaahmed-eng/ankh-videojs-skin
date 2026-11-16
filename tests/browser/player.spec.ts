@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 
-const videoSelector = '.ankh-player > mux-video, .ankh-player > video';
+const videoSelector = '.ankh-player > mux-video, .ankh-player > hlsjs-video, .ankh-player > video';
 const muxPlaybackId = 'QlDrE00kgqfngiVLY01qa011sGYQFV1ftW7VARb4QSCZZA';
 let browserErrors: string[] = [];
 
@@ -29,13 +29,13 @@ async function loadShowcase(
   });
   if (muxUnsupported && options.fallbackForUnsupportedHls !== false) {
     await page.locator('.ankh-player > mux-video').evaluate((element) => {
-      const fallback = document.createElement('video');
-      fallback.className = 'ankh-media';
-      fallback.src = 'https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/1080/Big_Buck_Bunny_1080_10s_1MB.mp4';
-      fallback.poster = '/ankh-solar-poster.svg';
-      fallback.playsInline = true;
-      fallback.preload = 'auto';
-      element.replaceWith(fallback);
+      const media = element as HTMLElement & {
+        source: { src: string; type: 'video/mp4' };
+      };
+      media.source = {
+        src: 'https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/1080/Big_Buck_Bunny_1080_10s_1MB.mp4',
+        type: 'video/mp4',
+      };
     });
   }
   await page.waitForFunction(
@@ -53,6 +53,9 @@ async function capture(page: import('@playwright/test').Page, path: string, full
 }
 
 test('shows the working showcase without horizontal overflow at target widths', async ({ page }) => {
+  await loadShowcase(page);
+  await expect(page.locator('#film-credit')).toHaveText('FILM: GREAT PYRAMIDS OF GIZA · K / PEXELS');
+  await expect(page.locator('#film-credit')).toHaveAttribute('href', 'https://www.pexels.com/video/stunning-view-of-the-great-pyramids-in-giza-32537704/');
   for (const width of [320, 375, 390, 768, 1024, 1440]) {
     await page.setViewportSize({ width, height: width < 500 ? 820 : 900 });
     await loadShowcase(page);
@@ -68,6 +71,12 @@ test('shows the working showcase without horizontal overflow at target widths', 
     expect(dimensions.player).toBeGreaterThan(0);
     expect(dimensions.controls.every(({ width, height }) => width >= 44 && height >= 44), `undersized touch control at ${width}px`).toBe(true);
     if (width === 390) await capture(page, 'artifacts/final-mobile.png');
+  }
+  await page.setViewportSize({ width: 390, height: 844 });
+  await loadShowcase(page);
+  for (const link of [page.locator('#film-credit'), page.locator('#audio-demo-link')]) {
+    const bounds = await link.boundingBox();
+    expect(bounds?.height, 'showcase links should remain touch friendly on mobile').toBeGreaterThanOrEqual(44);
   }
   await page.setViewportSize({ width: 1440, height: 900 });
   await loadShowcase(page);
@@ -132,6 +141,55 @@ test('production media uses the public Mux asset and verifies stream metadata or
   expect(media.width).toBeGreaterThan(0);
   expect(media.height).toBeGreaterThan(0);
   expect(Math.abs(media.width / media.height - 16 / 9)).toBeLessThan(0.03);
+});
+
+test('secondary Big Buck Bunny HLS demo exposes an AAC audio rendition for mute and volume checks', async ({ page }) => {
+  const playlists: number[] = [];
+  page.on('response', (response) => {
+    if (response.url().includes('test-streams.mux.dev/x36xhzz') && response.url().includes('.m3u8')) {
+      playlists.push(response.status());
+    }
+  });
+  await page.goto('/showcase.html?demo=audio');
+  const media = page.locator('.ankh-player > hlsjs-video');
+  await media.waitFor();
+  await page.waitForFunction(() => {
+    const element = document.querySelector<HTMLElement>('.ankh-player > hlsjs-video') as (HTMLElement & { readyState: number; error: MediaError | null }) | null;
+    return Boolean(element && (element.readyState >= 1 || element.error));
+  }, null, { timeout: 60_000 });
+  await expect(page.locator('#film-credit')).toHaveText('FILM: BIG BUCK BUNNY · BLENDER FOUNDATION · CC BY 3.0');
+  await expect(page.locator('#audio-demo-link')).toHaveText('RETURN TO ANKH MUX SHOWCASE');
+  expect(playlists.some((status) => status === 200 || status === 206)).toBe(true);
+  expect(playlists.every((status) => status < 400)).toBe(true);
+
+  const unsupported = await page.evaluate(() => {
+    const video = document.createElement('video');
+    return typeof MediaSource === 'undefined' && !video.canPlayType('application/vnd.apple.mpegurl');
+  });
+  if (unsupported) {
+    await expect.poll(() => media.evaluate((element) => Boolean((element as HTMLMediaElement).error))).toBe(true);
+    await expect(page.locator('.ankh-error-dialog')).toHaveAttribute('data-open', '');
+    return;
+  }
+
+  await page.locator('.ankh-play-button').click();
+  await expect.poll(() => media.evaluate((element) => (element as HTMLMediaElement).currentTime)).toBeGreaterThan(1);
+  const codecs = await media.evaluate((element) => {
+    const player = element as HTMLElement & { engine?: { levels?: Array<{ audioCodec?: string }> } };
+    return player.engine?.levels?.map((level) => level.audioCodec).filter(Boolean) ?? [];
+  });
+  expect(codecs.some((codec) => codec?.startsWith('mp4a.'))).toBe(true);
+  await page.locator('.ankh-player').hover();
+  const volumeThumb = page.locator('.ankh-volume-thumb');
+  await expect(volumeThumb).toBeVisible();
+  const initialVolume = await media.evaluate((element) => (element as HTMLMediaElement).volume);
+  await volumeThumb.focus();
+  await page.keyboard.press('ArrowLeft');
+  await expect.poll(() => media.evaluate((element) => (element as HTMLMediaElement).volume)).toBeLessThan(initialVolume);
+  const mutedBefore = await media.evaluate((element) => (element as HTMLMediaElement).muted);
+  await expect(page.locator('.ankh-mute-button')).toBeVisible();
+  await page.locator('.ankh-mute-button').click();
+  await expect.poll(() => media.evaluate((element) => (element as HTMLMediaElement).muted)).toBe(!mutedBefore);
 });
 
 test('solar disc is the centered, keyboard-operable initial play control', async ({ page }) => {

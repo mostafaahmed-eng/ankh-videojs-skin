@@ -25,7 +25,9 @@ The control shelf preserves official play, pause, replay, mute, volume, captions
 
 ## Media and poster
 
-The production showcase uses the official Video.js v10 `@videojs/mux-video` HLS adapter with public playback ID `QlDrE00kgqfngiVLY01qa011sGYQFV1ftW7VARb4QSCZZA`. Mux Player and iframe embeds are not used. The original ANKH poster is supplied through Video.js `media-poster`, so provider-generated Mux thumbnails do not replace the approved artwork. The adapter allows automatic rendition selection up to 2160p while retaining adaptive playback for smaller viewports and limited bandwidth. A licensed Big Buck Bunny MP4 remains a development fallback only.
+The production showcase uses the official Video.js v10 `@videojs/mux-video` HLS adapter with public playback ID `QlDrE00kgqfngiVLY01qa011sGYQFV1ftW7VARb4QSCZZA`. Mux Player and iframe embeds are not used. The original ANKH poster is supplied through Video.js `media-poster`, so provider-generated Mux thumbnails do not replace the approved artwork. The adapter allows automatic rendition selection up to 2160p while retaining adaptive playback for smaller viewports and limited bandwidth. The adapter uses hls.js where Media Source Extensions are available and its native-HLS delegate otherwise; this is the supported Safari/iOS path, though it has not been validated in a real Safari device here. A separate `/showcase.html?demo=audio` mode uses the official Video.js HLS.js/native-HLS adapter with the public AAC Big Buck Bunny stream. The silent MP4 excerpt remains the development fallback only.
+
+The clickable production credit links to the Pexels page for “Stunning View of the Great Pyramids in Giza” by K. It is used under the Pexels License and is explicitly outside the Apache 2.0 license on the original ANKH code. The audio demo uses Big Buck Bunny, Blender Foundation, CC BY 3.0.
 
 ## Accessibility
 
