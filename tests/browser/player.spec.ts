@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
+import { readFile } from 'node:fs/promises';
 
 const videoSelector = '.ankh-player > mux-video, .ankh-player > hlsjs-video, .ankh-player > video';
 const muxPlaybackId = 'QlDrE00kgqfngiVLY01qa011sGYQFV1ftW7VARb4QSCZZA';
@@ -88,6 +89,116 @@ test('shows the working showcase without horizontal overflow at target widths', 
   }
   await capture(page, 'artifacts/final-desktop.png', false);
   await page.locator('.ankh-player').screenshot({ path: 'artifacts/submission-hero.png' });
+});
+
+test('production root and showcase routes show ANKH while workbench stays available by name', async ({ page }) => {
+  await page.goto('/');
+  await expect(page).toHaveTitle(/ANKH — The Art of Time/);
+  await expect(page.locator('.ankh-player')).toBeVisible();
+  await expect(page.locator('#root')).toHaveCount(0);
+  await page.goto('/showcase.html');
+  await expect(page.locator('.ankh-player')).toBeVisible();
+  const workbench = await page.request.get('/workbench.html');
+  expect(workbench.ok()).toBe(true);
+  const workbenchHtml = await workbench.text();
+  expect(workbenchHtml).toContain('<title>ankh - Video.js</title>');
+  expect(workbenchHtml).toContain('assets/workbench-');
+  expect(workbenchHtml).toContain('id="root"');
+  const vercel = JSON.parse(await readFile(new URL('../../vercel.json', import.meta.url), 'utf8')) as { rewrites: Array<{ source: string; destination: string }> };
+  expect(vercel.rewrites).toContainEqual({ source: '/workbench', destination: '/workbench.html' });
+});
+
+test('surface clicks, skip settings, persisted preferences, shortcuts, boundaries, and screenshots', async ({ page }) => {
+  await loadShowcase(page);
+  const video = page.locator(videoSelector);
+  const bounds = await video.boundingBox();
+  if (!bounds) throw new Error('Video has no rendered bounds');
+  const surface = { x: bounds.x + bounds.width * 0.18, y: bounds.y + bounds.height * 0.2 };
+  await page.mouse.click(surface.x, surface.y);
+  await expect.poll(() => video.evaluate((el: HTMLVideoElement) => !el.paused)).toBe(true);
+  await capture(page, 'artifacts/v31-playing.png');
+  await page.mouse.click(surface.x, surface.y);
+  await expect.poll(() => video.evaluate((el: HTMLVideoElement) => el.paused)).toBe(true);
+
+  const beforeControl = await video.evaluate((el: HTMLVideoElement) => el.paused);
+  await page.locator('.ankh-mute-button').click();
+  expect(await video.evaluate((el: HTMLVideoElement) => el.paused)).toBe(beforeControl);
+  await video.evaluate((el: HTMLVideoElement) => { el.currentTime = 8; });
+  await page.locator('.ankh-skip-back').click();
+  await expect.poll(() => video.evaluate((el: HTMLVideoElement) => el.currentTime)).toBeLessThan(1);
+  await page.locator('.ankh-settings summary').click();
+  await expect(page.locator('.ankh-settings-panel')).toBeVisible();
+  await expect(page.locator('.ankh-back-duration')).toHaveAccessibleName('Skip backward duration');
+  await capture(page, 'artifacts/v31-settings.png');
+  await page.locator('.ankh-back-duration').selectOption('15');
+  await page.locator('.ankh-forward-duration').selectOption('30');
+  await expect(page.locator('.ankh-skip-back')).toHaveAccessibleName('Skip backward 15 seconds');
+  await expect(page.locator('.ankh-skip-forward')).toHaveAccessibleName('Skip forward 30 seconds');
+  await page.reload();
+  await expect(page.locator('.ankh-skip-back')).toHaveAccessibleName('Skip backward 15 seconds');
+  await expect(page.locator('.ankh-skip-forward')).toHaveAccessibleName('Skip forward 30 seconds');
+  await loadShowcase(page);
+  const reloadedVideo = page.locator(videoSelector);
+  await reloadedVideo.evaluate((el: HTMLVideoElement) => { el.currentTime = 2; });
+  await page.locator('.ankh-skip-back').click();
+  await expect.poll(() => reloadedVideo.evaluate((el: HTMLVideoElement) => el.currentTime)).toBe(0);
+  await reloadedVideo.evaluate((el: HTMLVideoElement) => { el.currentTime = 1; });
+  await page.locator('.ankh-skip-forward').click();
+  await expect.poll(() => reloadedVideo.evaluate((el: HTMLVideoElement) => el.currentTime)).toBeGreaterThan(20);
+  await page.locator('.ankh-settings summary').click();
+  await page.locator('.ankh-settings-reset').click();
+  await page.locator('.ankh-settings summary').click();
+  await expect(page.locator('.ankh-skip-back')).toHaveAccessibleName('Skip backward 10 seconds');
+  await expect(page.locator('.ankh-skip-forward')).toHaveAccessibleName('Skip forward 10 seconds');
+  await page.mouse.click(surface.x, surface.y);
+  await expect.poll(() => reloadedVideo.evaluate((el: HTMLVideoElement) => !el.paused)).toBe(true);
+  await capture(page, 'artifacts/v31-desktop.png', false);
+  await page.locator('.ankh-player').screenshot({ path: 'artifacts/v31-submission-hero.png' });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await loadShowcase(page);
+  await capture(page, 'artifacts/v31-mobile.png');
+});
+
+test('player keyboard shortcuts and double-tap seeking use the active player', async ({ page, browser }) => {
+  await loadShowcase(page);
+  const video = page.locator(videoSelector);
+  await video.evaluate((el: HTMLVideoElement) => { el.currentTime = 8; });
+  await page.locator('.ankh-player').focus();
+  await page.keyboard.press('j');
+  await expect.poll(() => video.evaluate((el: HTMLVideoElement) => el.currentTime)).toBeLessThan(1);
+  await page.keyboard.press('l');
+  await expect.poll(() => video.evaluate((el: HTMLVideoElement) => el.currentTime)).toBeGreaterThan(8);
+  await page.keyboard.press('k');
+  await expect.poll(() => video.evaluate((el: HTMLVideoElement) => !el.paused)).toBe(true);
+  await page.keyboard.press('k');
+  await expect.poll(() => video.evaluate((el: HTMLVideoElement) => el.paused)).toBe(true);
+
+  if (test.info().project.name === 'chromium') {
+    const doubleBounds = await video.boundingBox();
+    if (doubleBounds) {
+      await page.mouse.dblclick(doubleBounds.x + doubleBounds.width * 0.2, doubleBounds.y + doubleBounds.height * 0.2);
+      await expect.poll(() => page.evaluate(() => Boolean(document.fullscreenElement))).toBe(true);
+      await capture(page, 'artifacts/v31-fullscreen.png', false);
+      await page.keyboard.press('Escape');
+    }
+  }
+
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true });
+  const touchPage = await context.newPage();
+  try {
+    await loadShowcase(touchPage);
+    const touchVideo = touchPage.locator(videoSelector);
+    await touchVideo.evaluate((el: HTMLVideoElement) => { el.currentTime = 8; });
+    const touchBounds = await touchVideo.boundingBox();
+    if (!touchBounds) throw new Error('Touch video has no rendered bounds');
+    await touchPage.touchscreen.tap(touchBounds.x + touchBounds.width * 0.2, touchBounds.y + touchBounds.height * 0.3);
+    await touchPage.waitForTimeout(70);
+    await touchPage.touchscreen.tap(touchBounds.x + touchBounds.width * 0.2, touchBounds.y + touchBounds.height * 0.3);
+    await expect.poll(() => touchVideo.evaluate((el: HTMLVideoElement) => el.currentTime)).toBeLessThan(1);
+    await expect(touchPage.locator('.ankh-seek-feedback')).toContainText('8 seconds');
+  } finally {
+    await context.close();
+  }
 });
 
 test('production media uses the public Mux asset and verifies stream metadata or supported error handling', async ({ page }) => {

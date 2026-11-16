@@ -2,11 +2,55 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>ankh - Video.js</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0b0d10" />
+    <link rel="icon" type="image/svg+xml" href="/ankh-mark.svg" />
+    <meta name="description" content="ANKH — The Art of Time. A Video.js v10 skin inspired by the measured path of the sun." />
+    <title>ANKH — The Art of Time</title>
   </head>
-  <body class="text-foreground h-screen overflow-hidden font-sans">
-    <div id="root" class="h-full"></div>
-    <script type="module" src="/src/shell/main.tsx"></script>
+  <body class="showcase-body">
+    <div class="showcase-shell">
+      <header class="showcase-header">
+        <a class="brand" href="./showcase.html" aria-label="ANKH — home">
+          <svg class="brand-mark" viewBox="0 0 40 48" aria-hidden="true">
+            <circle cx="20" cy="11" r="7" />
+            <path d="M20 18v24M10 29h20M12 42h16M14 29v9m12-9v9" />
+          </svg>
+          <span>ANKH</span>
+        </a>
+        <span class="header-note">A Video.js v10 skin</span>
+      </header>
+
+      <main>
+        <section class="showcase-intro" aria-labelledby="showcase-title">
+          <p class="eyebrow"><span></span> An instrument for the moving image</p>
+          <h1 id="showcase-title">The Art <em>of Time.</em></h1>
+          <p class="intro-copy">A contemporary study in time, motion, and the path of the sun. Made for watching, shaped by precision.</p>
+        </section>
+
+        <section class="showcase-player" aria-label="ANKH — A Journey Through Time player" id="showcase-player-section">
+          <div id="player-mount"></div>
+          <div class="player-caption">
+            <span id="media-caption-title">01 <i></i> ANKH — A JOURNEY THROUGH TIME</span>
+            <span>VIDEO SKIN / 10.4</span>
+          </div>
+        </section>
+
+        <section class="showcase-note" aria-label="Design concept">
+          <span class="note-index">I.</span>
+          <p>The timeline traces a single measured arc: buffered light behind, a solar disc at the present, and the unplayed path held in shadow. Every control is a native Video.js component, carrying real playback state and keyboard behavior.</p>
+          <span class="note-rule" aria-hidden="true"></span>
+        </section>
+      </main>
+
+      <footer class="showcase-footer">
+        <span>ANKH <span class="footer-dot">·</span> THE ART OF TIME</span>
+        <nav class="showcase-footer-links" aria-label="Media credits and demos">
+          <a id="film-credit" href="https://www.pexels.com/video/stunning-view-of-the-great-pyramids-in-giza-32537704/" target="_blank" rel="noreferrer">FILM: GREAT PYRAMIDS OF GIZA · K / PEXELS</a>
+          <a id="audio-demo-link" href="?demo=audio">TEST AUDIO CONTROLS · BIG BUCK BUNNY</a>
+        </nav>
+      </footer>
+    </div>
+    <script type="module" src="/showcase.ts"></script>
   </body>
 </html>

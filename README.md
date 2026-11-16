@@ -9,7 +9,7 @@ npm install
 npm run dev
 ```
 
-The official workbench opens at the printed URL (normally `http://localhost:5173/`). The premium showcase is at `/showcase.html` (normally `http://localhost:5173/showcase.html`).
+The showcase opens at the printed development URL (normally `http://localhost:5173/`) and remains available at `/showcase.html`. Open `/workbench.html` to use the developer workbench. In production, `/` serves the showcase and `/workbench` opens the workbench.
 
 ## Configure media
 
@@ -47,7 +47,7 @@ The production showcase plays **ANKH — A Journey Through Time** from the suppl
 
 ## Production and deployment
 
-The Vite production command is `npm run build`; static output goes to `dist/`. `vercel.json` configures this and rewrites the production root URL to `/showcase.html`. See [DEPLOYMENT.md](DEPLOYMENT.md) for Vercel setup. Do not add private Mux keys to client environment variables; the public playback ID is safe in the static bundle.
+The Vite production command is `npm run build`; static output goes to `dist/`. The build emits the showcase as `index.html`, the workbench as `workbench.html`, and retains `showcase.html`. Vercel rewrites `/workbench` to the workbench document. See [DEPLOYMENT.md](DEPLOYMENT.md) for Vercel setup. Do not add private Mux keys to client environment variables; the public playback ID is safe in the static bundle.
 
 ## License
 

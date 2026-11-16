@@ -95,6 +95,7 @@
   align-items: end;
   padding: clamp(12px, 2.2cqi, 28px);
   box-sizing: border-box;
+  pointer-events: none;
   opacity: 1;
   visibility: visible;
   transition: opacity var(--ankh-motion) var(--ankh-ease), visibility var(--ankh-motion);
@@ -107,6 +108,7 @@
 
 .ankh-control-shelf {
   position: relative;
+  pointer-events: auto;
   width: 100%;
   padding: 7px 18px 9px;
   box-sizing: border-box;
@@ -337,6 +339,20 @@
 .ankh-secondary-controls {
   gap: 8px;
 }
+
+.ankh-skip { position: relative; }
+.ankh-skip svg { width: 25px; height: 25px; }
+.ankh-skip span { position: absolute; top: 20px; left: 50%; color: var(--ankh-sandstone); font-size: 7px; line-height: 1; transform: translateX(-50%); }
+.ankh-settings { position: relative; display: inline-flex; }
+.ankh-settings-button { list-style: none; cursor: pointer; }
+.ankh-settings-button::-webkit-details-marker { display: none; }
+.ankh-settings-panel { position: absolute; z-index: 8; right: 0; bottom: calc(100% + 8px); display: grid; min-width: 190px; gap: 10px; padding: 14px; color: var(--ankh-ivory); background: #111316; border: 1px solid var(--ankh-line); box-shadow: 0 8px 28px #0009; }
+.ankh-settings-panel label { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 12px; }
+.ankh-settings-panel select, .ankh-settings-reset { min-height: 36px; color: inherit; background: #202226; border: 1px solid var(--ankh-line); }
+.ankh-settings-panel select { padding: 0 8px; }
+.ankh-settings-reset { padding: 0 10px; cursor: pointer; }
+.ankh-seek-feedback { position: absolute; z-index: 4; top: 50%; left: 50%; padding: 9px 14px; color: var(--ankh-ivory); background: rgb(11 13 16 / 82%); border: 1px solid var(--ankh-line); opacity: 0; pointer-events: none; transform: translate(-50%, -50%); }
+.ankh-seek-feedback[data-visible] { opacity: 1; }
 
 .ankh-button,
 .ankh-play-button,
@@ -638,6 +654,8 @@ media-status-announcer {
   .ankh-primary-controls, .ankh-secondary-controls { gap: 0; }
   .ankh-button, .ankh-play-button { width: 44px; height: 44px; }
   .ankh-button svg, .ankh-play-button svg { width: 20px; height: 20px; }
+  .ankh-settings { order: 10; }
+  .ankh-secondary-controls { flex-wrap: wrap; justify-content: flex-end; }
 }
 
 .ankh-player[data-fullscreen] .ankh-controls { position: absolute; inset: 0; }
