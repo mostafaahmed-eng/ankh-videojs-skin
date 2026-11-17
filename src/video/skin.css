@@ -31,8 +31,9 @@
   outline: none;
 }
 
-.ankh-player:focus-visible,
-.ankh-player :focus-visible {
+.ankh-player:focus,
+.ankh-player :focus-visible,
+.ankh-player :focus {
   outline: 2px solid var(--ankh-focus);
   outline-offset: 3px;
   box-shadow: 0 0 0 4px var(--ankh-obsidian);
@@ -78,6 +79,8 @@
   inset: 0;
   display: block;
 }
+
+.ankh-controls { pointer-events: none; }
 
 .ankh-scrim {
   pointer-events: none;

@@ -44,9 +44,22 @@ const escapeBoundPlayers = new WeakSet<Element>();
 const interactionBoundPlayers = new WeakSet<HTMLElement>();
 const skipChoices = [5, 10, 15, 30, 60] as const;
 type SkipDirection = 'back' | 'forward';
-type MediaLike = HTMLElement & { currentTime: number; duration: number; paused: boolean; play: () => Promise<void>; pause: () => void; muted: boolean; volume: number };
+type MediaLike = HTMLElement & { currentTime: number; duration: number; paused: boolean; ended: boolean; play: () => Promise<void>; pause: () => void; muted: boolean; volume: number };
 let activePlayer: HTMLElement | null = null;
 let playerSequence = 0;
+
+function requestPlayback(media: MediaLike): void {
+  try {
+    if (media.ended || (Number.isFinite(media.duration) && media.currentTime >= media.duration)) media.currentTime = 0;
+    const pending = media.play();
+    if (pending && typeof pending.catch === 'function') void pending.catch(() => {});
+  } catch { /* Unsupported playback is reflected by the media error state. */ }
+}
+
+function togglePlayback(media: MediaLike): void {
+  if (media.paused) requestPlayback(media);
+  else media.pause();
+}
 
 function installPlayerInteractions(player: HTMLElement): void {
   if (interactionBoundPlayers.has(player)) return;
@@ -141,7 +154,7 @@ function installPlayerInteractions(player: HTMLElement): void {
   player.addEventListener('click', (event) => {
     if (!isSurfaceTarget(event.target) || performance.now() - lastTouchAt < 700) return;
     window.clearTimeout(clickTimer);
-    clickTimer = window.setTimeout(() => { if (media.paused) void media.play(); else media.pause(); }, 260);
+    clickTimer = window.setTimeout(() => togglePlayback(media), 260);
   });
   player.addEventListener('dblclick', (event) => {
     if (!isSurfaceTarget(event.target) || performance.now() - lastTouchAt < 700) return;
@@ -164,13 +177,17 @@ function installPlayerInteractions(player: HTMLElement): void {
       lastTouchX = event.clientX;
       window.clearTimeout(clickTimer);
       clickTimer = window.setTimeout(() => {
-        if (Math.abs(event.clientX - lastTouchX) < 24) { if (media.paused) void media.play(); else media.pause(); }
+        if (Math.abs(event.clientX - lastTouchX) < 24) togglePlayback(media);
       }, 330);
     }
   });
 
   if (!document.documentElement.hasAttribute('data-ankh-shortcuts')) {
     document.documentElement.setAttribute('data-ankh-shortcuts', '');
+    document.addEventListener('focusin', (event) => {
+      const owner = event.composedPath().find((target): target is HTMLElement => target instanceof HTMLElement && target.matches('.ankh-player'));
+      if (owner) activePlayer = owner;
+    }, true);
     document.addEventListener('keydown', (event) => {
       const target = event.target;
       if (!(target instanceof HTMLElement) || target.isContentEditable || target.matches('input, textarea, select, [contenteditable="true"]')) return;
@@ -181,12 +198,16 @@ function installPlayerInteractions(player: HTMLElement): void {
       if (!selectedMedia) return;
       const focusedSlider = target.getAttribute('role') === 'slider';
       if (focusedSlider && ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(event.key)) return;
+      const key = event.code === 'Space' ? ' ' : event.key.toLowerCase();
       const prefs = (() => { try { return JSON.parse(localStorage.getItem('ankh-playback-preferences') || '{}') as { back?: number; forward?: number }; } catch { return {}; } })();
       const back = skipChoices.includes(prefs.back as typeof skipChoices[number]) ? prefs.back! : 10;
       const forward = skipChoices.includes(prefs.forward as typeof skipChoices[number]) ? prefs.forward! : 10;
       let handled = true;
-      switch (event.key.toLowerCase()) {
-        case ' ': case 'k': if (target.matches('button, summary')) { handled = false; break; } if (selectedMedia.paused) void selectedMedia.play(); else selectedMedia.pause(); break;
+      switch (key) {
+        case ' ': handled = false; break;
+        case 'k':
+          togglePlayback(selectedMedia);
+          break;
         case 'j': selectedMedia.currentTime = Math.max(0, selectedMedia.currentTime - back); break;
         case 'l': selectedMedia.currentTime = Math.min(selectedMedia.duration, selectedMedia.currentTime + forward); break;
         case 'arrowleft': selectedMedia.currentTime = Math.max(0, selectedMedia.currentTime - 5); break;
@@ -197,8 +218,11 @@ function installPlayerInteractions(player: HTMLElement): void {
         case 'arrowdown': selectedMedia.volume = Math.max(0, selectedMedia.volume - 0.05); break;
         default: handled = false;
       }
-      if (handled) event.preventDefault();
-    });
+      if (handled) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+    }, true);
   }
 }
 

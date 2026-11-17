@@ -2,6 +2,10 @@
   <!-- Add a compatible media component here. -->
   <media-poster class="ankh-poster"><!-- ANKH poster image --></media-poster>
 
+  <media-hotkey keys="Space" action="togglePaused"></media-hotkey>
+  <media-hotkey keys="ArrowLeft" action="seekStep" value="-5"></media-hotkey>
+  <media-hotkey keys="ArrowRight" action="seekStep" value="5"></media-hotkey>
+
   <media-play-button class="ankh-center-play">
     <svg class="icon-play" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 10 6-10 6z"/></svg>
     <svg class="icon-pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 6v12M16 6v12"/></svg>

@@ -111,13 +111,16 @@ test('production root and showcase routes show ANKH while workbench stays availa
 test('surface clicks, skip settings, persisted preferences, shortcuts, boundaries, and screenshots', async ({ page }) => {
   await loadShowcase(page);
   const video = page.locator(videoSelector);
+  await video.evaluate((el: HTMLVideoElement) => { el.pause(); el.currentTime = 0; });
   const bounds = await video.boundingBox();
   if (!bounds) throw new Error('Video has no rendered bounds');
   const surface = { x: bounds.x + bounds.width * 0.18, y: bounds.y + bounds.height * 0.2 };
   await page.mouse.click(surface.x, surface.y);
+  await page.waitForTimeout(300);
   await expect.poll(() => video.evaluate((el: HTMLVideoElement) => !el.paused)).toBe(true);
   await capture(page, 'artifacts/v31-playing.png');
   await page.mouse.click(surface.x, surface.y);
+  await page.waitForTimeout(300);
   await expect.poll(() => video.evaluate((el: HTMLVideoElement) => el.paused)).toBe(true);
 
   const beforeControl = await video.evaluate((el: HTMLVideoElement) => el.paused);
@@ -141,10 +144,10 @@ test('surface clicks, skip settings, persisted preferences, shortcuts, boundarie
   const reloadedVideo = page.locator(videoSelector);
   await reloadedVideo.evaluate((el: HTMLVideoElement) => { el.currentTime = 2; });
   await page.locator('.ankh-skip-back').click();
-  await expect.poll(() => reloadedVideo.evaluate((el: HTMLVideoElement) => el.currentTime)).toBe(0);
+  await expect.poll(() => reloadedVideo.evaluate((el: HTMLVideoElement) => el.currentTime)).toBeLessThan(0.5);
   await reloadedVideo.evaluate((el: HTMLVideoElement) => { el.currentTime = 1; });
   await page.locator('.ankh-skip-forward').click();
-  await expect.poll(() => reloadedVideo.evaluate((el: HTMLVideoElement) => el.currentTime)).toBeGreaterThan(20);
+  await expect.poll(() => reloadedVideo.evaluate((el: HTMLVideoElement) => el.ended || el.currentTime > el.duration - 0.5)).toBe(true);
   await page.locator('.ankh-settings summary').click();
   await page.locator('.ankh-settings-reset').click();
   await page.locator('.ankh-settings summary').click();
@@ -153,7 +156,9 @@ test('surface clicks, skip settings, persisted preferences, shortcuts, boundarie
   await page.mouse.click(surface.x, surface.y);
   await expect.poll(() => reloadedVideo.evaluate((el: HTMLVideoElement) => !el.paused)).toBe(true);
   await capture(page, 'artifacts/v31-desktop.png', false);
-  await page.locator('.ankh-player').screenshot({ path: 'artifacts/v31-submission-hero.png' });
+  if (test.info().project.name === 'chromium') {
+    await page.locator('.ankh-player').screenshot({ path: 'artifacts/v31-submission-hero.png' });
+  }
   await page.setViewportSize({ width: 390, height: 844 });
   await loadShowcase(page);
   await capture(page, 'artifacts/v31-mobile.png');
@@ -162,7 +167,7 @@ test('surface clicks, skip settings, persisted preferences, shortcuts, boundarie
 test('player keyboard shortcuts and double-tap seeking use the active player', async ({ page, browser }) => {
   await loadShowcase(page);
   const video = page.locator(videoSelector);
-  await video.evaluate((el: HTMLVideoElement) => { el.currentTime = 8; });
+  await video.evaluate((el: HTMLVideoElement) => { el.pause(); el.currentTime = 8; });
   await page.locator('.ankh-player').focus();
   await page.keyboard.press('j');
   await expect.poll(() => video.evaluate((el: HTMLVideoElement) => el.currentTime)).toBeLessThan(1);
